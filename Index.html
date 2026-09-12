@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReelLog - Clone</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- NAVBAR -->
+    <nav>
+        <div class="nav-left">
+            <div class="logo">🎬 <span>ReelLog</span></div>
+            <div class="nav-links">
+                <a href="#" class="active">Home</a>
+                <a href="#">Movies</a>
+                <a href="#">TV Shows</a>
+                <a href="#">Social</a>
+            </div>
+        </div>
+        <div class="nav-right">
+            <input type="text" class="search-bar" placeholder="Search films and shows">
+            <div class="avatar">JD</div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="hero-tag">Featured this week</div>
+        <h1>The Last<br><span>Horizon</span></h1>
+        <div class="hero-meta">
+            <span>2025</span> &middot; <span>Sci-Fi &middot; Drama</span> &middot; <span class="rating">★ 8.8</span>
+        </div>
+        <p class="hero-desc">
+            A deep-space cartographer follows a signal beyond the edge of every known map—and discovers a reason to turn back.
+        </p>
+        <div class="hero-actions">
+            <button class="btn btn-primary">▶ View details</button>
+            <button class="btn btn-secondary">+ In my list</button>
+        </div>
+    </header>
+
+    <!-- STATS ROW -->
+    <section class="stats-row">
+        <div class="stat-card">
+            <div>▶</div>
+            <div>
+                <h3>2</h3>
+                <p>Watching</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div>✓</div>
+            <div>
+                <h3>2</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div>🔖</div>
+            <div>
+                <h3>1</h3>
+                <p>Plan to watch</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- MADE FOR YOU SECTION -->
+    <section>
+        <div class="section-header">
+            <div>
+                <h2>Made for you</h2>
+                <p>Because you enjoy thoughtful science fiction</p>
+            </div>
+            <a href="#">View all ></a>
+        </div>
+        
+        <div class="movie-grid" id="madeForYouGrid">
+            <!-- Hardcoded fallback items -->
+            <div class="movie-card">
+                <div class="poster-wrapper">
+                    <img src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?q=80&w=400&auto=format&fit=crop" alt="Signal Lost">
+                    <div class="rating-badge">★ 8.3</div>
+                    <div class="status-badge">COMPLETED</div>
+                </div>
+                <div class="movie-info">
+                    <div>
+                        <div class="movie-title">Signal Lost</div>
+                        <div class="movie-meta">2024 · TV Show</div>
+                    </div>
+                    <div class="action-circle">✓</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/app.js"></script>
+</body>
