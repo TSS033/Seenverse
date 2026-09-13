@@ -388,8 +388,7 @@ nav {
 .nav-links a:visited,
 .nav-links a:active,
 .mobile-nav-link,
-.mobile-nav-link:visited,
-.mobile-nav-link:active {
+.mobile-nav-link:visited {
     color: var(--text-muted) !important;
     text-decoration: none !important;
 }
@@ -408,7 +407,8 @@ nav {
     color: var(--text-main) !important;
 }
 
-.mobile-nav-link.active i {
+.mobile-nav-link.active i,
+.mobile-nav-link.active span {
     color: var(--text-main) !important;
 }
 

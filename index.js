@@ -52,10 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             const targetId = link.getAttribute("data-target");
+            if (!targetId) return;
 
-            views.forEach(view => view.style.display = "none");
+            views.forEach(view => view.classList.remove("active"));
             const targetView = document.getElementById(targetId);
-            if (targetView) targetView.style.display = "block";
+            if (targetView) targetView.classList.add("active");
 
             links.forEach(l => {
                 if (l.getAttribute("data-target") === targetId) {
