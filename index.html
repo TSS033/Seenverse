@@ -5,36 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SeenVerse</title>
     <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <nav>
-        <div class="nav-left">
-            <div class="logo">🎬 <span>SeenVerse</span></div>            <div class="nav-links">
-                <a href="#" class="active">Home</a>
-                <a href="#">Movies</a>
-                <a href="#">TV Shows</a>
-                <a href="#">Social</a>
+    <!-- SITE HEADER WRAPPER -->
+    <header class="site-header">
+        <!-- NAVBAR -->
+        <nav>
+            <div class="nav-left">
+                <div class="logo">🎬 <span>SeenVerse</span></div>
+                <div class="nav-links">
+                    <a href="#" class="active">Home</a>
+                    <a href="#">Movies</a>
+                    <a href="#">TV Shows</a>
+                    <a href="#">Social</a>
+                </div>
             </div>
-        </div>
-        <div class="nav-right">
-            <input type="text" class="search-bar" placeholder="Search films and shows">
-            <div class="avatar">JD</div>
-        </div>
-    </nav>
+            <div class="nav-right">
+                <input type="text" class="search-bar" placeholder="Search films and shows">
+                <div class="avatar">JD</div>
+            </div>
+        </nav>
 
-    <!-- HERO SECTION -->
-    <header class="hero">
-        <div class="hero-tag">Featured this week</div>
-        <h1>The Last<br><span>Horizon</span></h1>
-        <div class="hero-meta">
-            <span>2025</span> &middot; <span>Sci-Fi &middot; Drama</span> &middot; <span class="rating">★ 8.8</span>
-        </div>
-        <p class="hero-desc">
-            A deep-space cartographer follows a signal beyond the edge of every known map—and discovers a reason to turn back.
-        </p>
-        <div class="hero-actions">
-            <button class="btn btn-primary">▶ View details</button>
-            <button class="btn btn-secondary">+ In my list</button>
+        <!-- HERO SECTION -->
+        <div class="hero">
+            <div class="hero-tag">Featured this week</div>
+            <h1>The Last<br><span>Horizon</span></h1>
+            <div class="hero-meta">
+                <span>2025</span> &middot; <span>Sci-Fi &middot; Drama</span> &middot; <span class="rating">★ 8.8</span>
+            </div>
+            <p class="hero-desc">
+                A deep-space cartographer follows a signal beyond the edge of every known map—and discovers a reason to turn back.
+            </p>
+            <div class="hero-actions">
+                <button class="btn btn-primary">▶ View details</button>
+                <button class="btn btn-secondary">+ In my list</button>
+            </div>
         </div>
     </header>
 
@@ -84,7 +90,7 @@
                 <div class="movie-info">
                     <div>
                         <div class="movie-title">Signal Lost</div>
-                        <div class="movie-meta">2024 · TV Show</div>
+                        <div class="movie-meta">2024 &middot; TV Show</div>
                     </div>
                     <div class="action-circle">✓</div>
                 </div>
@@ -92,5 +98,30 @@
         </div>
     </section>
 
+    <!-- MOBILE NAVIGATION MENU -->
+    <nav class="mobile-nav">
+        <a href="#" class="mobile-nav-link active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" class="mobile-nav-link">
+            <i class="fas fa-film"></i>
+            <span>Movies</span>
+        </a>
+        <a href="#" class="mobile-nav-link">
+            <i class="fas fa-tv"></i>
+            <span>TV Shows</span>
+        </a>
+        <a href="#" class="mobile-nav-link">
+            <i class="fas fa-users"></i>
+            <span>Social</span>
+        </a>
+        <a href="#" class="mobile-nav-link">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
     <script src="index.js"></script>
 </body>
+</html>

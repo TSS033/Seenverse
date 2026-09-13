@@ -22,8 +22,14 @@ body {
     font-family: var(--font-family);
     line-height: 1.5;
     padding: 0 2rem;
+    padding-bottom: 5rem; /* Space for mobile nav on small screens */
     max-width: 1400px;
     margin: 0 auto;
+}
+
+/* --- Site Header Wrapper --- */
+.site-header {
+    margin-bottom: 2rem;
 }
 
 /* --- Navbar --- */
@@ -106,7 +112,6 @@ nav {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin-bottom: 2rem;
 }
 
 .hero-tag {
@@ -297,4 +302,79 @@ nav {
     justify-content: center;
     color: var(--text-muted);
     font-size: 0.7rem;
+}
+
+/* --- Mobile Navigation --- */
+.mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--surface-color);
+    display: flex;
+    justify-content: space-around;
+    padding: 0.75rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 1000;
+}
+
+.mobile-nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.mobile-nav-link i {
+    font-size: 1.2rem;
+}
+
+.mobile-nav-link.active {
+    color: var(--accent-color);
+}
+
+/* --- Responsive Breakpoint for Tablet & PC (>= 850px) --- */
+@media (min-width: 850px) {
+    .mobile-nav {
+        display: none;
+    }
+
+    body {
+        padding-bottom: 2rem;
+    }
+
+    nav {
+        padding: 1.5rem 0;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .search-bar {
+        width: 300px;
+    }
+
+    .hero {
+        min-height: 400px;
+        padding: 4rem 3rem;
+    }
+
+    .hero h1 {
+        font-size: 3.5rem;
+    }
+}
+
+/* --- Responsive Breakpoint for Large Desktop (>= 1200px) --- */
+@media (min-width: 1200px) {
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+        margin-left: 2rem;
+    }
 }
