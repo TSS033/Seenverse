@@ -5,6 +5,13 @@ const API_CONFIG = {
     IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
 };
 
+// --- SUPABASE CONFIGURATION ---
+const SUPABASE_URL = 'https://ijqaftsyaxbqwgprkwxs.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqcWFmdHN5YXhicXdncHJrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTYzODIsImV4cCI6MjEwNDg5MjM4Mn0.spPD3I8aZZAQeIcYr7ej4V3H94P1A_eFjcuS2VLIqog';
+
+// Initialize Supabase Client (requires CDN script tag in index.html)
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
 // Mixed Dataset (Movies & TV Shows Fallback)
 const FALLBACK_MEDIA = [
     {
@@ -46,10 +53,73 @@ const FALLBACK_MEDIA = [
 ];
 
 let activeFilter = 'all';
+let currentUser = null;
 
 // --- HELPER FUNCTIONS ---
 function getInitials(name) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
+}
+
+// --- AUTHENTICATION FUNCTIONS ---
+async function signUp(email, password, username) {
+    if (!supabase) return console.warn('Supabase client not initialized');
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    
+    if (error) return console.error('Signup error:', error.message);
+    
+    if (data.user) {
+        await supabase.from('profiles').insert([
+            { id: data.user.id, username: username, avatar_color: '#6366f1' }
+        ]);
+        alert('Account created! Check your email for verification.');
+    }
+}
+
+async function signIn(email, password) {
+    if (!supabase) return console.warn('Supabase client not initialized');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return console.error('Login error:', error.message);
+    console.log('Logged in successfully:', data.user);
+}
+
+async function signOut() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) console.error('Logout error:', error.message);
+}
+
+// --- WATCHLIST DATABASE OPERATIONS ---
+async function addToWatchlist(item) {
+    if (!supabase) return;
+    if (!currentUser) return alert('Please log in to save items!');
+
+    const { data, error } = await supabase.from('watchlists').insert([
+        {
+            user_id: currentUser.id,
+            media_id: String(item.id || item.title),
+            title: item.title,
+            poster_path: item.poster_path,
+            media_type: item.type,
+            rating: Number(item.rating) || null
+        }
+    ]);
+
+    if (error) {
+        console.error('Error saving item:', error.message);
+    } else {
+        alert(`${item.title} added to your library!`);
+    }
+}
+
+async function fetchUserWatchlist(userId) {
+    if (!supabase) return;
+    const { data, error } = await supabase
+        .from('watchlists')
+        .select('*')
+        .eq('user_id', userId);
+
+    if (error) console.error('Error fetching watchlist:', error.message);
+    else console.log('User Watchlist:', data);
 }
 
 // --- API FETCH & RENDER MEDIA ---
@@ -241,7 +311,20 @@ function closeMediaModal() {
 // --- MAIN INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 1. Navigation & Filter Handling
+    // 1. Listen for Supabase Authentication State Changes
+    if (supabase) {
+        supabase.auth.onAuthStateChange((event, session) => {
+            currentUser = session ? session.user : null;
+            if (currentUser) {
+                console.log('Active user authenticated:', currentUser.id);
+                fetchUserWatchlist(currentUser.id);
+            } else {
+                console.log('No user authenticated');
+            }
+        });
+    }
+
+    // 2. Navigation & Filter Handling
     const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
@@ -283,7 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 2. Global Event Delegation
+    // 3. Global Event Delegation
     document.addEventListener('click', (e) => {
         // Modal Close
         if (e.target.closest('#modalCloseBtn') || e.target.id === 'mediaModal') {
@@ -332,14 +415,24 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Watchlist + Button
+        // Watchlist + Button (Add to Supabase Database)
         const actionCircle = e.target.closest('.action-circle');
         if (actionCircle) {
             e.stopPropagation();
             actionCircle.classList.toggle('added');
-            actionCircle.innerHTML = actionCircle.classList.contains('added') 
-                ? '<i class="fa-solid fa-check"></i>' 
-                : '<i class="fa-solid fa-plus"></i>';
+            const isAdded = actionCircle.classList.contains('added');
+            actionCircle.innerHTML = isAdded ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-plus"></i>';
+            
+            const card = actionCircle.closest('.movie-card');
+            if (card && isAdded) {
+                addToWatchlist({
+                    id: card.dataset.id,
+                    title: card.dataset.title,
+                    poster_path: card.querySelector('img')?.src,
+                    type: card.dataset.type,
+                    rating: card.dataset.rating
+                });
+            }
             return;
         }
 
@@ -373,7 +466,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 3. Initial Load
+    // 4. Initial Load
     fetchAndRenderMovies('all');
     initSocialData();
 });
