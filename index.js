@@ -54,6 +54,7 @@ const FALLBACK_MEDIA = [
 
 let activeFilter = 'all';
 let currentUser = null;
+let isSignUpMode = false;
 
 // --- HELPER FUNCTIONS ---
 function getInitials(name) {
@@ -65,11 +66,11 @@ async function signUp(email, password, username) {
     if (!supabase) return console.warn('Supabase client not initialized');
     const { data, error } = await supabase.auth.signUp({ email, password });
     
-    if (error) return console.error('Signup error:', error.message);
+    if (error) return alert('Signup error: ' + error.message);
     
     if (data.user) {
         await supabase.from('profiles').insert([
-            { id: data.user.id, username: username, avatar_color: '#6366f1' }
+            { id: data.user.id, username: username || email.split('@')[0], avatar_color: '#6366f1' }
         ]);
         alert('Account created! Check your email for verification.');
     }
@@ -78,7 +79,7 @@ async function signUp(email, password, username) {
 async function signIn(email, password) {
     if (!supabase) return console.warn('Supabase client not initialized');
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return console.error('Login error:', error.message);
+    if (error) return alert('Login error: ' + error.message);
     console.log('Logged in successfully:', data.user);
 }
 
@@ -86,6 +87,7 @@ async function signOut() {
     if (!supabase) return;
     const { error } = await supabase.auth.signOut();
     if (error) console.error('Logout error:', error.message);
+    else alert('Signed out successfully.');
 }
 
 // --- WATCHLIST DATABASE OPERATIONS ---
@@ -287,7 +289,7 @@ function initSocialData() {
     renderPeopleToFollow(sampleUsers);
 }
 
-// --- MODAL CONTROLLER ---
+// --- MODAL CONTROLLERS ---
 function openMediaModal(data) {
     const modal = document.getElementById('mediaModal');
     if (!modal) return;
@@ -311,40 +313,86 @@ function closeMediaModal() {
 // --- MAIN INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
 
+    const avatarEl = document.querySelector('.avatar');
+    const authModal = document.getElementById('authModal');
+    const authForm = document.getElementById('authForm');
+    const authTitle = document.getElementById('authTitle');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const authToggleBtn = document.getElementById('authToggleBtn');
+    const authToggleText = document.getElementById('authToggleText');
+    const usernameGroup = document.getElementById('usernameGroup');
+
     // 1. Listen for Supabase Authentication State Changes
     if (supabase) {
         supabase.auth.onAuthStateChange((event, session) => {
             currentUser = session ? session.user : null;
             if (currentUser) {
                 console.log('Active user authenticated:', currentUser.id);
+                if (avatarEl) avatarEl.textContent = getInitials(currentUser.email);
                 fetchUserWatchlist(currentUser.id);
             } else {
                 console.log('No user authenticated');
+                if (avatarEl) avatarEl.textContent = 'JS';
             }
         });
     }
 
-    // 2. Navigation & Filter Handling
+    // 2. Auth Modal Control & Event Listeners
+    if (avatarEl) {
+        avatarEl.addEventListener('click', () => {
+            if (currentUser) {
+                if (confirm('Are you sure you want to sign out?')) signOut();
+            } else if (authModal) {
+                authModal.classList.add('active');
+            }
+        });
+    }
+
+    if (authToggleBtn) {
+        authToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isSignUpMode = !isSignUpMode;
+
+            if (authTitle) authTitle.textContent = isSignUpMode ? 'Create Account' : 'Welcome to StreamHub';
+            if (authSubmitBtn) authSubmitBtn.textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
+            if (authToggleText) authToggleText.textContent = isSignUpMode ? 'Already have an account?' : "Don't have an account?";
+            authToggleBtn.textContent = isSignUpMode ? 'Sign In' : 'Sign Up';
+            if (usernameGroup) usernameGroup.style.display = isSignUpMode ? 'block' : 'none';
+        });
+    }
+
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('authEmail')?.value;
+            const password = document.getElementById('authPassword')?.value;
+            const username = document.getElementById('authUsername')?.value;
+
+            if (isSignUpMode) {
+                await signUp(email, password, username);
+            } else {
+                await signIn(email, password);
+            }
+            if (authModal) authModal.classList.remove('active');
+        });
+    }
+
+    // 3. Navigation & Filter Handling
     const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
     function switchView(targetId, filter = 'all') {
-        // Toggle Active Sections
         views.forEach(view => view.classList.remove("active"));
         const targetView = document.getElementById(targetId);
         if (targetView) targetView.classList.add("active");
 
-        // Strict Nav Highlight Matching
         navLinks.forEach(l => {
             const matchesTarget = l.getAttribute("data-target") === targetId;
             const linkFilter = l.getAttribute("data-filter") || 'all';
-
-            // Only mark active if view target matches AND filter matches (for homeView sub-navigation)
             const isMatch = matchesTarget && (targetId !== 'homeView' || linkFilter === filter);
             l.classList.toggle("active", isMatch);
         });
 
-        // Handle Home view rendering and inner tabs sync
         if (targetId === 'homeView') {
             activeFilter = filter;
             fetchAndRenderMovies(filter);
@@ -366,11 +414,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 3. Global Event Delegation
+    // 4. Global Event Delegation
     document.addEventListener('click', (e) => {
-        // Modal Close
+        // Modal Close (Media or Auth)
         if (e.target.closest('#modalCloseBtn') || e.target.id === 'mediaModal') {
             closeMediaModal();
+            return;
+        }
+
+        if (e.target.closest('#authModalCloseBtn') || e.target.id === 'authModal') {
+            if (authModal) authModal.classList.remove('active');
             return;
         }
 
@@ -380,7 +433,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const filter = filterBtn.getAttribute('data-filter') || 'all';
             activeFilter = filter;
             
-            // Sync Top Nav Highlighting when clicking in-page filter buttons
             navLinks.forEach(l => {
                 const matchesTarget = l.getAttribute("data-target") === 'homeView';
                 const linkFilter = l.getAttribute("data-filter") || 'all';
@@ -466,7 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 4. Initial Load
+    // 5. Initial Load
     fetchAndRenderMovies('all');
     initSocialData();
 });

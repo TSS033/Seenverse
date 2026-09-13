@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="index.css">
+    <!-- Supabase JS Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -330,6 +331,42 @@
 
                 <button class="btn-save-library">Save to Library</button>
             </div>
+        </div>
+    </div>
+
+    <!-- AUTHENTICATION MODAL -->
+    <div id="authModal" class="modal-backdrop">
+        <div class="modal-container" style="max-width: 420px; height: auto; padding: 2rem; flex-direction: column;">
+            <button id="authModalCloseBtn" class="modal-close">&times;</button>
+            
+            <h2 id="authTitle" style="margin-bottom: 0.5rem; text-align: center;">Welcome to StreamHub</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-bottom: 1.5rem;">
+                Sign in to sync your watchlist and ratings across devices.
+            </p>
+
+            <form id="authForm" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div id="usernameGroup" class="modal-section" style="display: none; margin-bottom: 0;">
+                    <label class="modal-label">USERNAME</label>
+                    <input type="text" id="authUsername" placeholder="johndoe" class="search-bar" style="width: 100%; border-radius: 8px;">
+                </div>
+
+                <div class="modal-section" style="margin-bottom: 0;">
+                    <label class="modal-label">EMAIL</label>
+                    <input type="email" id="authEmail" placeholder="user@example.com" required class="search-bar" style="width: 100%; border-radius: 8px;">
+                </div>
+
+                <div class="modal-section" style="margin-bottom: 0;">
+                    <label class="modal-label">PASSWORD</label>
+                    <input type="password" id="authPassword" placeholder="••••••••" required class="search-bar" style="width: 100%; border-radius: 8px;">
+                </div>
+
+                <button type="submit" id="authSubmitBtn" class="btn-save-library" style="margin-top: 0.5rem;">Sign In</button>
+            </form>
+
+            <p style="font-size: 0.8rem; text-align: center; margin-top: 1.25rem; color: var(--text-muted);">
+                <span id="authToggleText">Don't have an account?</span> 
+                <a href="#" id="authToggleBtn" style="color: var(--accent-color); font-weight: 600; text-decoration: none;">Sign Up</a>
+            </p>
         </div>
     </div>
 
