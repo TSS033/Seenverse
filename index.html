@@ -3,248 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seenverse</title>
-    <link rel="stylesheet" href="index.css">
+    <title>StreamHub</title>
+    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="index.js" defer></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
+    <!-- Header & Navigation -->
     <header class="site-header">
         <nav>
             <div class="nav-left">
                 <div class="logo">
-                    <i class="fa-solid fa-clapperboard"></i>
-                    <span>Seenverse</span>
+                    <i class="fa-solid fa-play"></i>
+                    <span>StreamHub</span>
                 </div>
                 <div class="nav-links">
-                    <a href="#" data-target="home-view" class="active">Home</a>
-                    <a href="#" data-target="movies-view">Movies</a>
-                    <a href="#" data-target="tv-view">TV Shows</a>
-                    <a href="#" data-target="social-view">Social</a>
+                    <a href="#" data-target="homeView" class="active">Home</a>
+                    <a href="#" data-target="socialView">Social</a>
                 </div>
             </div>
             <div class="nav-right">
-                <input type="text" class="search-bar" placeholder="Search films and shows">
-                <div class="avatar">JD</div>
+                <input type="text" class="search-bar" placeholder="Search movies, TV...">
+                <div class="avatar">JS</div>
             </div>
         </nav>
     </header>
 
-    <main>
-        <!-- HOME VIEW -->
-        <section id="home-view" class="view-section active">
-            <!-- Hero -->
-            <div class="hero">
-                <span class="hero-tag">Discover</span>
-                <h1>The Last <span>Horizon</span></h1>
-                <div class="hero-meta">
-                    <span class="rating"><i class="fa-solid fa-star"></i> 8.8</span>
-                    <span>2025</span>
-                    <span>Movie</span>
-                </div>
-                <p class="hero-desc">Find your next unforgettable story across galaxies and dimensions.</p>
-                <div class="hero-actions">
-                    <button class="btn btn-primary"><i class="fa-solid fa-play"></i> Watch Now</button>
-                    <button class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Add to List</button>
+    <!-- VIEW 1: HOME PAGE -->
+    <section id="homeView" class="view-section active">
+        <!-- Hero Section -->
+        <div class="hero">
+            <span class="hero-tag">Featured Sci-Fi</span>
+            <h1>Blade Runner <span>2049</span></h1>
+            <div class="hero-meta">
+                <span class="rating"><i class="fa-solid fa-star"></i> 8.0</span>
+                <span>•</span>
+                <span>2017</span>
+                <span>•</span>
+                <span>2h 44m</span>
+                <span>•</span>
+                <span>Sci-Fi / Drama</span>
+            </div>
+            <p class="hero-desc">Young Blade Runner K's discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard, who's been missing for thirty years.</p>
+            <div class="hero-actions">
+                <button class="btn btn-primary"><i class="fa-solid fa-play"></i> Watch Trailer</button>
+                <button class="btn btn-secondary"><i class="fa-solid fa-plus"></i> Add to Library</button>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-row" style="margin-top: 2rem;">
+            <div class="stat-card">
+                <i class="fa-solid fa-film" style="color: var(--accent-color); font-size: 1.5rem;"></i>
+                <div>
+                    <h3>128</h3>
+                    <p>Movies Saved</p>
                 </div>
             </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-tv" style="color: #6366f1; font-size: 1.5rem;"></i>
+                <div>
+                    <h3>42</h3>
+                    <p>Shows Tracked</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-clock-rotate-left" style="color: #10b981; font-size: 1.5rem;"></i>
+                <div>
+                    <h3>340h</h3>
+                    <p>Watch Time</p>
+                </div>
+            </div>
+        </div>
 
-            <!-- Stats Row -->
-            <div class="stats-row" style="margin-top: 2rem;">
-                <div class="stat-card">
-                    <i class="fa-solid fa-film" style="font-size: 1.5rem; color: var(--accent-color, #e06d53);"></i>
+        <!-- Made For You / Sci-Fi Grid -->
+        <div class="section-header">
+            <div>
+                <h2>Made For You</h2>
+                <p>Based on your recent interest in Sci-Fi & Cyberpunk</p>
+            </div>
+            <a href="#">See All</a>
+        </div>
+
+        <div id="madeForYouGrid" class="movie-grid">
+            <!-- Fallback static cards if TMDB API key is not supplied -->
+            <div class="movie-card">
+                <div class="poster-wrapper">
+                    <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop" alt="The Matrix">
+                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.7</div>
+                    <div class="status-badge">COMPLETED</div>
+                </div>
+                <div class="movie-info">
                     <div>
-                        <h3>142</h3>
-                        <p>Movies Watched</p>
+                        <div class="movie-title">The Matrix</div>
+                        <div class="movie-meta">1999 · Movie</div>
                     </div>
+                    <div class="action-circle"><i class="fa-solid fa-check"></i></div>
                 </div>
-                <div class="stat-card">
-                    <i class="fa-solid fa-tv" style="font-size: 1.5rem; color: #6366f1;"></i>
+            </div>
+
+            <div class="movie-card">
+                <div class="poster-wrapper">
+                    <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop" alt="Cyberpunk: Edgerunners">
+                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.3</div>
+                    <div class="status-badge">WATCHING</div>
+                </div>
+                <div class="movie-info">
                     <div>
-                        <h3>38</h3>
-                        <p>Shows Completed</p>
+                        <div class="movie-title">Edgerunners</div>
+                        <div class="movie-meta">2022 · Anime</div>
                     </div>
+                    <div class="action-circle"><i class="fa-solid fa-play"></i></div>
                 </div>
-                <div class="stat-card">
-                    <i class="fa-solid fa-clock" style="font-size: 1.5rem; color: #10b981;"></i>
+            </div>
+
+            <div class="movie-card">
+                <div class="poster-wrapper">
+                    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop" alt="Interstellar">
+                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.6</div>
+                    <div class="status-badge">PLAN TO WATCH</div>
+                </div>
+                <div class="movie-info">
                     <div>
-                        <h3>420h</h3>
-                        <p>Time Spent</p>
+                        <div class="movie-title">Interstellar</div>
+                        <div class="movie-meta">2014 · Movie</div>
                     </div>
+                    <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
                 </div>
             </div>
 
-            <!-- Trending Section -->
-            <div class="section-header">
-                <div>
-                    <h2>Trending Now</h2>
-                    <p>Popular movies this week</p>
+            <div class="movie-card">
+                <div class="poster-wrapper">
+                    <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop" alt="Dune">
+                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.0</div>
+                    <div class="status-badge">PLAN TO WATCH</div>
                 </div>
-                <a href="#">See all</a>
-            </div>
-            <div class="movie-grid">
-                <div class="movie-card">
-                    <div class="poster-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop" alt="Cyberpunk 2099">
-                        <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.9</div>
-                        <div class="status-badge">WATCHED</div>
+                <div class="movie-info">
+                    <div>
+                        <div class="movie-title">Dune: Part One</div>
+                        <div class="movie-meta">2021 · Movie</div>
                     </div>
-                    <div class="movie-info">
-                        <div>
-                            <div class="movie-title">Cyberpunk 2099</div>
-                            <div class="movie-meta">2024 · Sci-Fi</div>
+                    <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VIEW 2: SOCIAL PAGE -->
+    <section id="socialView" class="view-section">
+        <div class="section-header">
+            <div>
+                <h2>Social Activity</h2>
+                <p>See what your friends and the community are watching</p>
+            </div>
+        </div>
+
+        <div class="social-layout">
+            <!-- Main Feed -->
+            <div id="socialFeed" class="social-feed">
+                <!-- Static Fallback Activity Cards -->
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <div class="user-avatar avatar-orange">ER</div>
+                        <div class="user-meta">
+                            <span class="user-name">Elena Rostova</span>
+                            <span class="user-handle">@erostova · 2h ago</span>
                         </div>
-                        <div class="action-circle"><i class="fa-solid fa-check"></i></div>
+                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
                     </div>
-                </div>
-                <div class="movie-card">
-                    <div class="poster-wrapper">
-                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop" alt="Salt House">
-                        <div class="rating-badge"><i class="fa-solid fa-star"></i> 9.1</div>
-                        <div class="status-badge">PLAN TO WATCH</div>
-                    </div>
-                    <div class="movie-info">
-                        <div>
-                            <div class="movie-title">Salt House</div>
-                            <div class="movie-meta">2025 · Drama</div>
+                    <div class="feed-content">
+                        <p class="activity-text">
+                            Finished watching and loved every second of it! <span class="rating-highlight"><i class="fa-solid fa-star"></i> 9.0/10</span>
+                        </p>
+                        <div class="media-card">
+                            <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop" alt="Cyberpunk: Edgerunners">
+                            <div class="media-info">
+                                <h4>Cyberpunk: Edgerunners</h4>
+                                <p>2022 · Anime</p>
+                            </div>
                         </div>
-                        <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
+                    </div>
+                    <div class="feed-actions">
+                        <button class="action-btn"><i class="fa-regular fa-heart"></i> 14</button>
+                        <button class="action-btn"><i class="fa-regular fa-comment"></i> 3</button>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- MOVIES VIEW -->
-        <section id="movies-view" class="view-section">
-            <div class="section-header">
-                <div>
-                    <h2>Movies</h2>
-                    <p>Find your next unforgettable story.</p>
-                </div>
-            </div>
-            <div id="madeForYouGrid" class="movie-grid">
-                <div class="movie-card">
-                    <div class="poster-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop" alt="Cyberpunk 2099">
-                        <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.9</div>
-                        <div class="status-badge">WATCHED</div>
-                    </div>
-                    <div class="movie-info">
-                        <div>
-                            <div class="movie-title">Cyberpunk 2099</div>
-                            <div class="movie-meta">2024 · Movie</div>
+                <div class="feed-card">
+                    <div class="feed-header">
+                        <div class="user-avatar avatar-purple">MC</div>
+                        <div class="user-meta">
+                            <span class="user-name">Marcus Chen</span>
+                            <span class="user-handle">@mchen · 5h ago</span>
                         </div>
-                        <div class="action-circle"><i class="fa-solid fa-check"></i></div>
+                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TV SHOWS VIEW -->
-        <section id="tv-view" class="view-section">
-            <div class="section-header">
-                <div>
-                    <h2>TV Shows</h2>
-                    <p>Binge-worthy series tailored for you.</p>
-                </div>
-            </div>
-            <div class="movie-grid">
-                <div class="movie-card">
-                    <div class="poster-wrapper">
-                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop" alt="Salt House">
-                        <div class="rating-badge"><i class="fa-solid fa-star"></i> 9.1</div>
-                        <div class="status-badge">Watching</div>
-                    </div>
-                    <div class="movie-info">
-                        <div>
-                            <div class="movie-title">Salt House</div>
-                            <div class="movie-meta">2025 · TV Show</div>
+                    <div class="feed-content">
+                        <p class="activity-text">
+                            Added to library plan to watch list.
+                        </p>
+                        <div class="media-card">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300&auto=format&fit=crop" alt="Interstellar">
+                            <div class="media-info">
+                                <h4>Interstellar</h4>
+                                <p>2014 · Movie</p>
+                            </div>
                         </div>
-                        <div class="action-circle"><i class="fa-solid fa-check"></i></div>
+                    </div>
+                    <div class="feed-actions">
+                        <button class="action-btn"><i class="fa-regular fa-heart"></i> 8</button>
+                        <button class="action-btn"><i class="fa-regular fa-comment"></i> 1</button>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- SOCIAL VIEW -->
-        <section id="social-view" class="view-section">
-            <div class="section-header">
-                <div>
-                    <span class="hero-tag">YOUR CIRCLE</span>
-                    <h2>Social</h2>
-                    <p>See what your friends are watching and loving.</p>
+            <!-- Sidebar -->
+            <aside class="social-sidebar">
+                <div class="sidebar-card">
+                    <h3>People to Follow</h3>
+                    <ul id="followList" class="follow-list">
+                        <li class="follow-item">
+                            <div class="user-avatar avatar-teal">SJ</div>
+                            <div class="user-meta">
+                                <span class="user-name">Sarah Jenkins</span>
+                                <span class="user-sub">12 mutuals</span>
+                            </div>
+                            <button class="btn-follow">Follow</button>
+                        </li>
+                        <li class="follow-item">
+                            <div class="user-avatar avatar-indigo">DK</div>
+                            <div class="user-meta">
+                                <span class="user-name">David Kim</span>
+                                <span class="user-sub">5 mutuals</span>
+                            </div>
+                            <button class="btn-follow following">Following</button>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            </aside>
+        </div>
+    </section>
 
-            <div class="social-layout">
-                <div id="socialFeed" class="social-feed">
-                    <!-- Dynamic posts will render here -->
-                </div>
+    <!-- MOBILE BOTTOM NAVBAR -->
+    <nav class="mobile-nav">
+        <a href="#" data-target="homeView" class="mobile-nav-link active">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" data-target="socialView" class="mobile-nav-link">
+            <i class="fa-solid fa-users"></i>
+            <span>Social</span>
+        </a>
+    </nav>
 
-                <aside class="social-sidebar">
-                    <div class="sidebar-card">
-                        <h3>People to follow</h3>
-                        <ul id="followList" class="follow-list">
-                            <!-- Dynamic users will render here -->
-                        </ul>
-                    </div>
-                </aside>
-            </div>
-        </section>
-    </main>
-
-    <!-- MOVIE / SHOW DETAIL MODAL -->
+    <!-- MEDIA DETAIL MODAL -->
     <div id="mediaModal" class="modal-backdrop">
         <div class="modal-container">
-            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <button id="modalCloseBtn" class="modal-close">&times;</button>
+
             <div class="modal-left">
                 <img id="modalPoster" src="" alt="Poster">
             </div>
+
             <div class="modal-right">
-                <span id="modalMetaTop" class="modal-subheading">Movie · 2024</span>
-                <h2 id="modalTitle">Title</h2>
-                <p id="modalOverview">Description goes here.</p>
+                <span id="modalSubheading" class="modal-subheading">MOVIE · 2024</span>
+                <h2 id="modalTitle">Media Title</h2>
                 
                 <div class="modal-meta-row">
-                    <span><i class="fa-solid fa-star" style="color: #f59e0b;"></i> <strong id="modalRating">8.4</strong></span>
-                    <span id="modalRuntime">1h 56m</span>
-                    <span id="modalGenres">Thriller · Mystery</span>
+                    <span><i class="fa-solid fa-star" style="color: #fbbf24;"></i> <span id="modalRating">8.0</span></span>
+                    <span id="modalRuntime">2h 10m</span>
+                    <span id="modalGenres">Sci-Fi · Thriller</span>
                 </div>
 
+                <p id="modalOverview">Detailed overview and summary of the selected movie or show will display here.</p>
+
                 <div class="modal-section">
-                    <label class="modal-label">LIST STATUS</label>
+                    <label class="modal-label">STATUS</label>
                     <div class="status-toggle-group">
-                        <button class="status-btn" data-status="Watching">Watching</button>
-                        <button class="status-btn active" data-status="Completed">Completed</button>
-                        <button class="status-btn" data-status="Plan to watch">Plan to watch</button>
+                        <button class="status-btn active">Plan to Watch</button>
+                        <button class="status-btn">Watching</button>
+                        <button class="status-btn">Completed</button>
                     </div>
                 </div>
 
                 <div class="modal-section">
                     <label class="modal-label">YOUR RATING</label>
-                    <div class="rating-picker" id="modalRatingPicker">
+                    <div class="rating-picker">
                         <button class="rate-num">1</button>
                         <button class="rate-num">2</button>
                         <button class="rate-num">3</button>
                         <button class="rate-num">4</button>
                         <button class="rate-num">5</button>
-                        <button class="rate-num">6</button>
+                        <button class="rate-num active">6</button>
                         <button class="rate-num">7</button>
-                        <button class="rate-num active">8</button>
+                        <button class="rate-num">8</button>
                         <button class="rate-num">9</button>
                         <button class="rate-num">10</button>
                     </div>
                 </div>
 
                 <div class="modal-section">
-                    <label class="modal-label">YOUR NOTE</label>
-                    <textarea id="modalNote" placeholder="Write your thoughts..."></textarea>
+                    <label class="modal-label">NOTES</label>
+                    <textarea id="modalNote" placeholder="Add personal notes or review..."></textarea>
                 </div>
 
-                <button class="btn-save-library" id="saveLibraryBtn">Save to my library</button>
+                <button class="btn-save-library">Save to Library</button>
             </div>
         </div>
     </div>
+
+    <!-- Main JavaScript File -->
+    <script src="index.js"></script>
 </body>
 </html>

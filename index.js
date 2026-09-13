@@ -142,7 +142,10 @@ function initSocialData() {
 // --- MODAL CONTROLLER ---
 function openMediaModal(data) {
     const modal = document.getElementById('mediaModal');
-    if (!modal) return;
+    if (!modal) {
+        console.warn('Target element #mediaModal not found in DOM.');
+        return;
+    }
 
     const posterEl = document.getElementById('modalPoster');
     const titleEl = document.getElementById('modalTitle');
@@ -171,8 +174,7 @@ function closeMediaModal() {
 // --- MAIN APPLICATION INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Navigation setup
-    const desktopLinks = document.querySelectorAll(".nav-links a");
-    const mobileLinks = document.querySelectorAll(".mobile-nav-link");
+    const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
     function switchView(targetId) {
@@ -180,18 +182,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const targetView = document.getElementById(targetId);
         if (targetView) targetView.classList.add("active");
 
-        desktopLinks.forEach(l => {
-            l.classList.toggle("active", l.getAttribute("data-target") === targetId);
-        });
-
-        mobileLinks.forEach(l => {
+        navLinks.forEach(l => {
             l.classList.toggle("active", l.getAttribute("data-target") === targetId);
         });
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    [...desktopLinks, ...mobileLinks].forEach(link => {
+    navLinks.forEach(link => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             const targetId = link.getAttribute("data-target");
@@ -208,10 +206,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Card click delegation for opening modal
+    // Card click delegation for opening modal (ignores buttons)
     document.addEventListener('click', (e) => {
         const card = e.target.closest('.movie-card, .media-card');
-        if (card && !e.target.closest('.action-circle')) {
+        if (card && !e.target.closest('.action-circle, .action-btn, .btn-follow')) {
             const title = card.querySelector('.movie-title, h4')?.textContent || 'Title';
             const meta = card.querySelector('.movie-meta, p')?.textContent || '2024 · Movie';
             const posterUrl = card.querySelector('img')?.src || '';
