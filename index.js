@@ -4,7 +4,6 @@ const API_CONFIG = {
     IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
 };
 
-// --- API FETCHING LOGIC ---
 async function fetchAndRenderMovies() {
     if (API_CONFIG.KEY === 'YOUR_API_KEY_HERE') {
         console.log("No API Key detected. Displaying hardcoded fallback items.");
@@ -45,47 +44,50 @@ async function fetchAndRenderMovies() {
     }
 }
 
-// --- DOM EVENT INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Select navigation links and view sections
-    const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
+    const desktopLinks = document.querySelectorAll(".nav-links a");
+    const mobileLinks = document.querySelectorAll(".mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
-    // 2. Tab / View switching handler
     function switchView(targetId) {
-        // Hide all view sections
         views.forEach(view => view.classList.remove("active"));
-
-        // Reveal selected view section
         const targetView = document.getElementById(targetId);
-        if (targetView) {
-            targetView.classList.add("active");
-        }
+        if (targetView) targetView.classList.add("active");
 
-        // Update active link highlighting across top and mobile navigation
-        navLinks.forEach(link => {
-            if (link.getAttribute("data-target") === targetId) {
-                link.classList.add("active");
+        desktopLinks.forEach(l => {
+            if (l.getAttribute("data-target") === targetId) {
+                l.classList.add("active");
             } else {
-                link.classList.remove("active");
+                l.classList.remove("active");
             }
         });
 
-        // Smooth scroll back to top of page
+        mobileLinks.forEach(l => {
+            if (l.getAttribute("data-target") === targetId) {
+                l.classList.add("active");
+            } else {
+                l.classList.remove("active");
+            }
+        });
+
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 3. Attach click event listeners
-    navLinks.forEach(link => {
+    desktopLinks.forEach(link => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             const targetId = link.getAttribute("data-target");
-            if (targetId) {
-                switchView(targetId);
-            }
+            if (targetId) switchView(targetId);
         });
     });
 
-    // 4. Load dynamic content
+    mobileLinks.forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute("data-target");
+            if (targetId) switchView(targetId);
+        });
+    });
+
     fetchAndRenderMovies();
 });
