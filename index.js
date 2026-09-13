@@ -1,11 +1,11 @@
 // --- CONFIGURATION ---
 const API_CONFIG = {
-    KEY: 'YOUR_API_KEY_HERE', 
+    KEY: '69ac2d5df8a30694620f698937bf84e3', 
     BASE_URL: 'https://api.themoviedb.org/3',
     IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
 };
 
-// Mixed Dataset (Movies & TV Shows)
+// Mixed Dataset (Movies & TV Shows Fallback)
 const FALLBACK_MEDIA = [
     {
         title: 'Blade Runner 2049',
@@ -57,41 +57,59 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
     const gridContainer = document.getElementById('madeForYouGrid');
     if (!gridContainer) return;
 
-    let mediaList = FALLBACK_MEDIA;
+    let mediaList = [];
 
-    if (API_CONFIG.KEY !== 'YOUR_API_KEY_HERE') {
-        try {
-            const response = await fetch(`${API_CONFIG.BASE_URL}/discover/movie?api_key=${API_CONFIG.KEY}&with_genres=878`);
-            const data = await response.json();
-            mediaList = (data.results || []).map(m => ({
-                title: m.title,
-                release_date: m.release_date,
-                vote_average: m.vote_average,
-                type: 'Movie',
-                poster_path: m.poster_path ? API_CONFIG.IMAGE_BASE + m.poster_path : '',
-                overview: m.overview,
-                genres: 'Sci-Fi'
-            }));
-        } catch (error) {
-            console.error("Error fetching API data, using fallbacks:", error);
+    try {
+        let endpoint = '';
+        
+        // Target dynamic TMDB endpoints based on category filter
+        if (filterCategory === 'Movie') {
+            endpoint = `${API_CONFIG.BASE_URL}/trending/movie/week?api_key=${API_CONFIG.KEY}`;
+        } else if (filterCategory === 'TV Show') {
+            endpoint = `${API_CONFIG.BASE_URL}/trending/tv/week?api_key=${API_CONFIG.KEY}`;
+        } else {
+            endpoint = `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`;
         }
-    }
 
-    // Filter by type if requested
-    if (filterCategory !== 'all') {
-        mediaList = mediaList.filter(item => item.type.toLowerCase() === filterCategory.toLowerCase());
+        const response = await fetch(endpoint);
+        const data = await response.json();
+
+        if (data.results && data.results.length > 0) {
+            mediaList = data.results.map(item => {
+                const isMovie = (item.media_type === 'movie') || item.title;
+                return {
+                    id: item.id,
+                    title: isMovie ? item.title : item.name,
+                    release_date: isMovie ? item.release_date : item.first_air_date,
+                    vote_average: item.vote_average,
+                    type: isMovie ? 'Movie' : 'TV Show',
+                    poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
+                    overview: item.overview || 'No description available.',
+                    genres: isMovie ? 'Sci-Fi · Action' : 'Drama · Sci-Fi'
+                };
+            });
+        } else {
+            throw new Error('No results from API');
+        }
+    } catch (error) {
+        console.error("Error fetching live data from TMDB, using fallback dataset:", error);
+        mediaList = FALLBACK_MEDIA;
+        if (filterCategory !== 'all') {
+            mediaList = mediaList.filter(item => item.type.toLowerCase() === filterCategory.toLowerCase());
+        }
     }
 
     gridContainer.innerHTML = mediaList.map(item => `
         <div class="movie-card" 
+             data-id="${item.id || ''}"
              data-title="${item.title}" 
              data-year="${item.release_date ? item.release_date.split('-')[0] : 'N/A'}"
              data-type="${item.type}"
              data-rating="${item.vote_average ? Number(item.vote_average).toFixed(1) : '8.0'}"
-             data-overview="${item.overview || 'No description available.'}"
+             data-overview="${item.overview ? item.overview.replace(/"/g, '&quot;') : 'No description available.'}"
              data-genres="${item.genres || 'Sci-Fi'}">
             <div class="poster-wrapper">
-                <img src="${item.poster_path}" alt="${item.title}">
+                <img src="${item.poster_path}" alt="${item.title}" loading="lazy">
                 <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.vote_average ? Number(item.vote_average).toFixed(1) : 'N/A'}</div>
                 <div class="status-badge">${item.type}</div>
             </div>
