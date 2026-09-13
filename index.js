@@ -2,7 +2,8 @@
 const API_CONFIG = {
     KEY: '69ac2d5df8a30694620f698937bf84e3', 
     BASE_URL: 'https://api.themoviedb.org/3',
-    IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
+    IMAGE_BASE: 'https://image.tmdb.org/t/p/w500',
+    BACKDROP_BASE: 'https://image.tmdb.org/t/p/w780'
 };
 
 // --- SUPABASE CONFIGURATION ---
@@ -16,10 +17,10 @@ const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabas
 
 // Mixed Dataset (Movies & TV Shows Fallback)
 const FALLBACK_MEDIA = [
-    { id: '101', title: 'Blade Runner 2049', release_date: '2017-10-06', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop', overview: 'A young Blade Runner\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.', genres: 'Sci-Fi · Drama' },
-    { id: '102', title: 'Cyberpunk: Edgerunners', release_date: '2022-09-13', vote_average: 8.3, type: 'TV Show', poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop', overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.', genres: 'Anime · Sci-Fi' },
-    { id: '103', title: 'Dune: Part Two', release_date: '2024-03-01', vote_average: 8.5, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop', overview: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.', genres: 'Sci-Fi · Adventure' },
-    { id: '104', title: 'The Matrix', release_date: '1999-03-31', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop', overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.', genres: 'Sci-Fi · Action' }
+    { id: '101', title: 'Blade Runner 2049', release_date: '2017-10-06', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop', overview: 'A young Blade Runner\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.', genres: 'Sci-Fi · Drama' },
+    { id: '102', title: 'Cyberpunk: Edgerunners', release_date: '2022-09-13', vote_average: 8.3, type: 'TV Show', poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop', overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.', genres: 'Anime · Sci-Fi' },
+    { id: '103', title: 'Dune: Part Two', release_date: '2024-03-01', vote_average: 8.5, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1200&auto=format&fit=crop', overview: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.', genres: 'Sci-Fi · Adventure' },
+    { id: '104', title: 'The Matrix', release_date: '1999-03-31', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop', overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.', genres: 'Sci-Fi · Action' }
 ];
 
 // --- STATE MANAGEMENT ---
@@ -179,6 +180,7 @@ async function saveMediaEntry() {
         title: activeMediaData.title,
         type: activeMediaData.type,
         poster_path: activeMediaData.poster_path || activeMediaData.posterUrl,
+        backdrop_path: activeMediaData.backdrop_path || activeMediaData.backdropUrl || '',
         genres: activeMediaData.genres || 'Sci-Fi',
         status: document.getElementById('entryStatus')?.value || 'Plan to Watch',
         score: document.getElementById('entryScore')?.value || 0,
@@ -297,6 +299,7 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
                     vote_average: item.vote_average,
                     type: isMovie ? 'Movie' : 'TV Show',
                     poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
+                    backdrop_path: item.backdrop_path ? (API_CONFIG.BACKDROP_BASE + item.backdrop_path) : '',
                     overview: item.overview || 'No description available.',
                     genres: isMovie ? 'Sci-Fi · Action' : 'Drama · Sci-Fi'
                 };
@@ -325,6 +328,7 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
                  data-type="${item.type}"
                  data-rating="${ratingFormatted}"
                  data-overview="${escapeHtml(item.overview)}"
+                 data-backdrop="${item.backdrop_path || ''}"
                  data-genres="${escapeHtml(item.genres)}">
                 <div class="poster-wrapper">
                     <img src="${item.poster_path}" alt="${titleEscaped}" loading="lazy">
@@ -455,9 +459,10 @@ function openMediaModal(data) {
     const subEl = document.getElementById('modalSubheading');
     if (subEl) subEl.textContent = `${data.type || 'Media'} · ${data.year || '2024'}`;
 
+    const bannerUrl = data.backdrop_path || data.backdropUrl || posterSrc;
     const banner = document.getElementById('modalBanner');
-    if (banner && posterSrc) {
-        banner.style.backgroundImage = `url('${posterSrc}')`;
+    if (banner && bannerUrl) {
+        banner.style.backgroundImage = `url('${bannerUrl}')`;
     }
 
     // Populate Fields from Existing Entry or Defaults
@@ -727,7 +732,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 rating: card.dataset.rating || '8.0',
                 overview: card.dataset.overview || 'Overview details...',
                 genres: card.dataset.genres || 'Sci-Fi',
-                poster_path: card.querySelector('img')?.src || ''
+                poster_path: card.querySelector('img')?.src || '',
+                backdrop_path: card.dataset.backdrop || card.querySelector('img')?.src || ''
             });
         }
     });
