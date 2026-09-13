@@ -22,7 +22,7 @@ body {
     font-family: var(--font-family);
     line-height: 1.5;
     padding: 0 1.5rem;
-    padding-bottom: 5.5rem; /* Space for fixed mobile nav */
+    padding-bottom: 5.5rem;
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -55,7 +55,9 @@ nav {
     color: var(--accent-color);
 }
 
-.logo span { color: var(--text-main); }
+.logo span { 
+    color: var(--text-main); 
+}
 
 /* Hidden by default on mobile screens */
 .nav-links {
@@ -78,7 +80,9 @@ nav {
     font-family: var(--font-family);
 }
 
-.search-bar:focus { outline: 1px solid var(--accent-color); }
+.search-bar:focus { 
+    outline: 1px solid var(--accent-color); 
+}
 
 .avatar {
     background-color: #6366f1;
@@ -127,7 +131,9 @@ nav {
     margin-bottom: 1rem;
 }
 
-.hero h1 span { color: var(--accent-color); }
+.hero h1 span { 
+    color: var(--accent-color); 
+}
 
 .hero-meta {
     color: var(--text-muted);
@@ -170,7 +176,9 @@ nav {
     transition: opacity 0.2s;
 }
 
-.btn:hover { opacity: 0.9; }
+.btn:hover { 
+    opacity: 0.9; 
+}
 
 .btn-primary {
     background-color: var(--accent-color);
@@ -201,8 +209,14 @@ nav {
     gap: 1rem;
 }
 
-.stat-card h3 { font-size: 1.25rem; }
-.stat-card p { color: var(--text-muted); font-size: 0.85rem; }
+.stat-card h3 { 
+    font-size: 1.25rem; 
+}
+
+.stat-card p { 
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+}
 
 /* --- Section Headers --- */
 .section-header {
@@ -212,9 +226,21 @@ nav {
     margin-bottom: 1.5rem;
 }
 
-.section-header h2 { font-size: 1.25rem; }
-.section-header p { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
-.section-header a { color: var(--accent-color); text-decoration: none; font-size: 0.85rem; }
+.section-header h2 { 
+    font-size: 1.25rem; 
+}
+
+.section-header p { 
+    color: var(--text-muted); 
+    font-size: 0.8rem; 
+    margin-top: 0.25rem; 
+}
+
+.section-header a { 
+    color: var(--accent-color); 
+    text-decoration: none; 
+    font-size: 0.85rem; 
+}
 
 /* --- Movie Grid --- */
 .movie-grid {
@@ -245,7 +271,9 @@ nav {
     transition: transform 0.3s;
 }
 
-.movie-card:hover .poster-wrapper img { transform: scale(1.05); }
+.movie-card:hover .poster-wrapper img { 
+    transform: scale(1.05); 
+}
 
 .rating-badge {
     position: absolute;
@@ -284,8 +312,15 @@ nav {
     margin-top: 0.5rem;
 }
 
-.movie-title { font-size: 0.9rem; font-weight: 600; }
-.movie-meta { font-size: 0.75rem; color: var(--text-muted); }
+.movie-title { 
+    font-size: 0.9rem; 
+    font-weight: 600; 
+}
+
+.movie-meta { 
+    font-size: 0.75rem; 
+    color: var(--text-muted); 
+}
 
 .action-circle {
     width: 24px;
@@ -299,20 +334,6 @@ nav {
     color: var(--text-muted);
     font-size: 0.7rem;
     flex-shrink: 0;
-}
-
-/* --- Mobile Bottom Navigation (Fixed) --- */
-.mobile-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: var(--surface-color);
-    display: flex;
-    justify-content: space-around;
-    padding: 0.75rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    z-index: 9999;
 }
 
 /* --- Mobile Bottom Navigation --- */
@@ -336,7 +357,6 @@ nav {
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    color: var(--text-muted);
     text-decoration: none;
     font-size: 0.65rem;
     font-weight: 500;
@@ -350,24 +370,52 @@ nav {
     font-size: 1.1rem;
 }
 
+/* --- Navigation Link States --- */
+.nav-links a,
+.nav-links a:visited,
+.nav-links a:active,
+.mobile-nav-link,
+.mobile-nav-link:visited,
+.mobile-nav-link:active {
+    color: var(--text-muted) !important;
+    text-decoration: none !important;
+}
+
+.nav-links a:hover,
+.mobile-nav-link:hover {
+    color: var(--text-main) !important;
+}
+
+.nav-links a.active,
+.nav-links a.active:visited,
+.nav-links a.active:active,
+.mobile-nav-link.active,
+.mobile-nav-link.active:visited,
+.mobile-nav-link.active:active {
+    color: var(--text-main) !important;
+}
+
+.mobile-nav-link.active i {
+    color: var(--text-main) !important;
+}
+
 .mobile-nav-link.active {
-    color: var(--accent-color);
-    background-color: rgba(255, 107, 74, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* --- Responsive Breakpoint for Tablets & PC (>= 850px) --- */
 @media (min-width: 850px) {
     body {
         padding: 0 2rem;
-        padding-bottom: 2rem; /* Remove mobile bottom padding */
+        padding-bottom: 2rem;
     }
 
     .mobile-nav {
-        display: none; /* Hide mobile bottom nav on larger screens */
+        display: none;
     }
 
     .nav-links {
-        display: flex; /* Show top navbar links on PC */
+        display: flex;
         gap: 2rem;
         margin-left: 2rem;
     }
@@ -398,27 +446,4 @@ nav {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1.5rem;
     }
-
-}
-/* --- Navigation Link States (Prevent Purple Visited Links) --- */
-.nav-links a,
-.nav-links a:visited,
-.mobile-nav-link,
-.mobile-nav-link:visited {
-    color: var(--text-muted);
-    text-decoration: none;
-}
-
-.nav-links a:hover,
-.mobile-nav-link:hover {
-    color: var(--text-main);
-}
-
-.nav-links a.active {
-    color: var(--text-main);
-}
-
-.mobile-nav-link.active {
-    color: var(--text-main);
-    background-color: rgba(255, 255, 255, 0.1);
 }
