@@ -194,5 +194,57 @@
         </aside>
     </div>
 </section>
+<!-- MOVIE / SHOW DETAIL MODAL -->
+<div id="mediaModal" class="modal-backdrop">
+    <div class="modal-container">
+        <button class="modal-close" id="modalCloseBtn">&times;</button>
+        <div class="modal-left">
+            <img id="modalPoster" src="" alt="Poster">
+        </div>
+        <div class="modal-right">
+            <span id="modalMetaTop" class="modal-subheading">Movie · 2024</span>
+            <h2 id="modalTitle">Title</h2>
+            <p id="modalOverview">Description goes here.</p>
+            
+            <div class="modal-meta-row">
+                <span><i class="fa-solid fa-star" style="color: #f59e0b;"></i> <strong id="modalRating">8.4</strong></span>
+                <span id="modalRuntime">1h 56m</span>
+                <span id="modalGenres">Thriller · Mystery</span>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">LIST STATUS</label>
+                <div class="status-toggle-group">
+                    <button class="status-btn" data-status="Watching">Watching</button>
+                    <button class="status-btn active" data-status="Completed">Completed</button>
+                    <button class="status-btn" data-status="Plan to watch">Plan to watch</button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">YOUR RATING</label>
+                <div class="rating-picker" id="modalRatingPicker">
+                    <button class="rate-num">1</button>
+                    <button class="rate-num">2</button>
+                    <button class="rate-num">3</button>
+                    <button class="rate-num">4</button>
+                    <button class="rate-num">5</button>
+                    <button class="rate-num">6</button>
+                    <button class="rate-num">7</button>
+                    <button class="rate-num active">8</button>
+                    <button class="rate-num">9</button>
+                    <button class="rate-num">10</button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label class="modal-label">YOUR NOTE</label>
+                <textarea id="modalNote" placeholder="Write your thoughts..."></textarea>
+            </div>
+
+            <button class="btn-save-library" id="saveLibraryBtn">Save to my library</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
