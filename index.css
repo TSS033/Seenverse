@@ -476,3 +476,193 @@ nav {
         gap: 1.5rem;
     }
 }
+/* SOCIAL PAGE LAYOUT */
+.social-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    align-items: start;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 900px) {
+    .social-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* FEED CARDS */
+.social-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.feed-card {
+    background-color: var(--card-bg, #12131e);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feed-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.avatar-orange { background-color: #e06d53; }
+.avatar-purple { background-color: #6366f1; }
+.avatar-teal   { background-color: #10b981; }
+.avatar-indigo { background-color: #4f46e5; }
+.avatar-blue   { background-color: #3b82f6; }
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #fff;
+}
+
+.user-handle, .user-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.more-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem;
+}
+
+.activity-text {
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    margin-bottom: 0.75rem;
+}
+
+.rating-highlight {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+/* MEDIA EMBED INSIDE CARDS */
+.media-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    overflow: hidden;
+}
+
+.media-card img {
+    width: 48px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.media-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #fff;
+}
+
+.media-info p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.feed-actions {
+    display: flex;
+    gap: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 0.75rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.action-btn:hover {
+    color: #fff;
+}
+
+/* SIDEBAR: PEOPLE TO FOLLOW */
+.sidebar-card {
+    background-color: var(--card-bg, #12131e);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1.25rem;
+}
+
+.sidebar-card h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.follow-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.follow-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-follow {
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-color, #e06d53);
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.btn-follow.following {
+    color: #10b981;
+}

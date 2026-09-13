@@ -91,3 +91,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetchAndRenderMovies();
 });
+// Helper to generate dynamic user avatars with initial letters
+function getInitials(name) {
+    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
+}
+
+// Render dynamic user activity posts
+function renderSocialFeed(posts) {
+    const feedContainer = document.getElementById('socialFeed');
+    if (!feedContainer) return;
+
+    feedContainer.innerHTML = posts.map(post => `
+        <div class="feed-card" data-post-id="${post.id}">
+            <div class="feed-header">
+                <div class="user-avatar" style="background-color: ${post.user.avatarColor || '#6366f1'};">
+                    ${getInitials(post.user.name)}
+                </div>
+                <div class="user-meta">
+                    <span class="user-name">${post.user.name}</span>
+                    <span class="user-handle">@${post.user.username} · ${post.timestamp}</span>
+                </div>
+                <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
+            </div>
+            <div class="feed-content">
+                <p class="activity-text">
+                    ${post.action} ${post.rating ? `<span class="rating-highlight"><i class="fa-solid fa-star"></i> ${post.rating}/10</span>` : ''}
+                </p>
+                ${post.media ? `
+                    <div class="media-card">
+                        <img src="${post.media.posterUrl}" alt="${post.media.title}">
+                        <div class="media-info">
+                            <h4>${post.media.title}</h4>
+                            <p>${post.media.year} · ${post.media.type}</p>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+            <div class="feed-actions">
+                <button class="action-btn like-btn"><i class="fa-regular fa-heart"></i> ${post.likesCount || 'Like'}</button>
+                <button class="action-btn"><i class="fa-regular fa-comment"></i> ${post.commentsCount || 'Comment'}</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render dynamic "People to Follow" list
+function renderPeopleToFollow(users) {
+    const followListContainer = document.getElementById('followList');
+    if (!followListContainer) return;
+
+    followListContainer.innerHTML = users.map(user => `
+        <li class="follow-item" data-user-id="${user.id}">
+            <div class="user-avatar" style="background-color: ${user.avatarColor || '#3b82f6'};">
+                ${getInitials(user.name)}
+            </div>
+            <div class="user-meta">
+                <span class="user-name">${user.name}</span>
+                <span class="user-sub">${user.mutualsCount} mutuals</span>
+            </div>
+            <button class="btn-follow ${user.isFollowing ? 'following' : ''}">
+                ${user.isFollowing ? 'Following' : 'Follow'}
+            </button>
+        </li>
+    `).join('');
+}
+
+// Example API fetch integration point
+async function fetchSocialData() {
+    try {
+        // Replace endpoint URLs with your backend API paths
+        // const feedResponse = await fetch('/api/social/feed');
+        // const postsData = await feedResponse.json();
+        // renderSocialFeed(postsData);
+
+        // const followResponse = await fetch('/api/social/suggested-users');
+        // const usersData = await followResponse.json();
+        // renderPeopleToFollow(usersData);
+    } catch (error) {
+        console.error("Failed to load social feed data:", error);
+    }
+}

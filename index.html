@@ -167,35 +167,32 @@
             </div>
         </section>
 
-        <!-- SOCIAL VIEW -->
-        <section id="social-view" class="view-section">
-            <div class="section-header">
-                <div>
-                    <h2>Social</h2>
-                    <p>See what your friends are watching and loving.</p>
-                </div>
-            </div>
-            <div class="social-feed">
-                <div class="stat-card social-card-custom">
-                    <i class="fa-solid fa-user-circle" style="font-size: 2rem; color: var(--accent-color);"></i>
-                    <div>
-                        <h3>Maya Chen</h3>
-                        <p>rated Neon Divide ⭐ 9/10</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- MOBILE BOTTOM NAV -->
-    <div class="mobile-nav">
-        <a href="#" data-target="home-view" class="mobile-nav-link active"><i class="fa-solid fa-house"></i><span>Home</span></a>
-        <a href="#" data-target="movies-view" class="mobile-nav-link"><i class="fa-solid fa-film"></i><span>Movies</span></a>
-        <a href="#" data-target="tv-view" class="mobile-nav-link"><i class="fa-solid fa-tv"></i><span>TV Shows</span></a>
-        <a href="#" data-target="social-view" class="mobile-nav-link"><i class="fa-solid fa-users"></i><span>Social</span></a>
+<!-- SOCIAL VIEW -->
+<section id="social-view" class="view-section">
+    <div class="section-header">
+        <div>
+            <span class="hero-tag">YOUR CIRCLE</span>
+            <h2>Social</h2>
+            <p>See what your friends are watching and loving.</p>
+        </div>
     </div>
 
-    <!-- Change from app.js to index.js -->
-    <script src="index.js" defer></script>
+    <div class="social-layout">
+        <!-- Dynamic Feed Container -->
+        <div id="socialFeed" class="social-feed">
+            <!-- Dynamic posts will render here -->
+        </div>
+
+        <!-- Sidebar: Dynamic Suggested Users -->
+        <aside class="social-sidebar">
+            <div class="sidebar-card">
+                <h3>People to follow</h3>
+                <ul id="followList" class="follow-list">
+                    <!-- Dynamic users will render here -->
+                </ul>
+            </div>
+        </aside>
+    </div>
+</section>
 </body>
 </html>
