@@ -45,28 +45,47 @@ async function fetchAndRenderMovies() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const links = document.querySelectorAll(".nav-links a, .mobile-nav-link");
+    const desktopLinks = document.querySelectorAll(".nav-links a");
+    const mobileLinks = document.querySelectorAll(".mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
-    links.forEach(link => {
+    function switchView(targetId) {
+        views.forEach(view => view.classList.remove("active"));
+        const targetView = document.getElementById(targetId);
+        if (targetView) targetView.classList.add("active");
+
+        desktopLinks.forEach(l => {
+            if (l.getAttribute("data-target") === targetId) {
+                l.classList.add("active");
+            } else {
+                l.classList.remove("active");
+            }
+        });
+
+        mobileLinks.forEach(l => {
+            if (l.getAttribute("data-target") === targetId) {
+                l.classList.add("active");
+            } else {
+                l.classList.remove("active");
+            }
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    desktopLinks.forEach(link => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             const targetId = link.getAttribute("data-target");
-            if (!targetId) return;
+            if (targetId) switchView(targetId);
+        });
+    });
 
-            views.forEach(view => view.classList.remove("active"));
-            const targetView = document.getElementById(targetId);
-            if (targetView) targetView.classList.add("active");
-
-            links.forEach(l => {
-                if (l.getAttribute("data-target") === targetId) {
-                    l.classList.add("active");
-                } else {
-                    l.classList.remove("active");
-                }
-            });
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    mobileLinks.forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute("data-target");
+            if (targetId) switchView(targetId);
         });
     });
 
