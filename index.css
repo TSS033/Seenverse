@@ -386,34 +386,50 @@ nav {
 /* --- Navigation Link States --- */
 .nav-links a,
 .nav-links a:visited,
-.nav-links a:active,
-.mobile-nav-link,
-.mobile-nav-link:visited {
-    color: var(--text-muted) !important;
-    text-decoration: none !important;
+.nav-links a:active {
+    color: var(--text-muted);
+    text-decoration: none;
 }
 
-.nav-links a:hover,
+.nav-links a:hover {
+    color: var(--text-main);
+}
+
+.nav-links a.active {
+    color: var(--text-main);
+}
+
+/* Mobile Nav Defaults */
+.mobile-nav-link {
+    color: var(--text-muted) !important;
+    text-decoration: none !important;
+    background-color: transparent;
+}
+
+.mobile-nav-link i,
+.mobile-nav-link span {
+    color: var(--text-muted) !important;
+}
+
+/* Mobile Nav Hover */
 .mobile-nav-link:hover {
     color: var(--text-main) !important;
 }
 
-.nav-links a.active,
-.nav-links a.active:visited,
-.nav-links a.active:active,
-.mobile-nav-link.active,
-.mobile-nav-link.active:visited,
-.mobile-nav-link.active:active {
+.mobile-nav-link:hover i,
+.mobile-nav-link:hover span {
+    color: var(--text-main) !important;
+}
+
+/* Mobile Nav Active State */
+.mobile-nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
     color: var(--text-main) !important;
 }
 
 .mobile-nav-link.active i,
 .mobile-nav-link.active span {
     color: var(--text-main) !important;
-}
-
-.mobile-nav-link.active {
-    background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* --- Responsive Breakpoint for Tablets & PC (>= 850px) --- */
