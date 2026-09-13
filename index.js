@@ -5,77 +5,100 @@ const API_CONFIG = {
     IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
 };
 
-// Fallback movie dataset when no TMDB API key is provided
-const FALLBACK_MOVIES = [
+// Mixed Dataset (Movies & TV Shows)
+const FALLBACK_MEDIA = [
     {
         title: 'Blade Runner 2049',
         release_date: '2017-10-06',
         vote_average: 8.7,
+        type: 'Movie',
         poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop',
         overview: 'A young Blade Runner\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.',
         genres: 'Sci-Fi · Drama'
     },
     {
+        title: 'Cyberpunk: Edgerunners',
+        release_date: '2022-09-13',
+        vote_average: 8.3,
+        type: 'TV Show',
+        poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop',
+        overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.',
+        genres: 'Anime · Sci-Fi'
+    },
+    {
         title: 'Dune: Part Two',
         release_date: '2024-03-01',
         vote_average: 8.5,
+        type: 'Movie',
         poster_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop',
         overview: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
         genres: 'Sci-Fi · Adventure'
     },
     {
-        title: 'Interstellar',
-        release_date: '2014-11-07',
+        title: 'Stranger Things',
+        release_date: '2016-07-15',
         vote_average: 8.6,
-        poster_path: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=500&auto=format&fit=crop',
-        overview: 'When Earth becomes uninhabitable, a team of ex-NASA pilots travels through a wormhole in search of a new home.',
-        genres: 'Sci-Fi · Drama'
+        type: 'TV Show',
+        poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop',
+        overview: 'When a young boy vanishes, a small town uncovers a mystery involving secret experiments and terrifying supernatural forces.',
+        genres: 'Sci-Fi · Horror'
     }
 ];
+
+let activeFilter = 'all';
 
 // --- HELPER FUNCTIONS ---
 function getInitials(name) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
 }
 
-// --- API FETCH & RENDER MOVIES ---
-async function fetchAndRenderMovies() {
+// --- API FETCH & RENDER MEDIA ---
+async function fetchAndRenderMovies(filterCategory = activeFilter) {
     const gridContainer = document.getElementById('madeForYouGrid');
     if (!gridContainer) return;
 
-    let moviesToRender = [];
+    let mediaList = FALLBACK_MEDIA;
 
-    if (API_CONFIG.KEY === 'YOUR_API_KEY_HERE') {
-        console.log("No API Key detected. Rendering fallback items.");
-        moviesToRender = FALLBACK_MOVIES;
-    } else {
+    if (API_CONFIG.KEY !== 'YOUR_API_KEY_HERE') {
         try {
             const response = await fetch(`${API_CONFIG.BASE_URL}/discover/movie?api_key=${API_CONFIG.KEY}&with_genres=878`);
             const data = await response.json();
-            moviesToRender = (data.results || []).slice(0, 6);
+            mediaList = (data.results || []).map(m => ({
+                title: m.title,
+                release_date: m.release_date,
+                vote_average: m.vote_average,
+                type: 'Movie',
+                poster_path: m.poster_path ? API_CONFIG.IMAGE_BASE + m.poster_path : '',
+                overview: m.overview,
+                genres: 'Sci-Fi'
+            }));
         } catch (error) {
-            console.error("Error fetching movies from API, falling back:", error);
-            moviesToRender = FALLBACK_MOVIES;
+            console.error("Error fetching API data, using fallbacks:", error);
         }
     }
 
-    gridContainer.innerHTML = moviesToRender.map(movie => `
+    // Filter by type if requested
+    if (filterCategory !== 'all') {
+        mediaList = mediaList.filter(item => item.type.toLowerCase() === filterCategory.toLowerCase());
+    }
+
+    gridContainer.innerHTML = mediaList.map(item => `
         <div class="movie-card" 
-             data-title="${movie.title}" 
-             data-year="${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'}"
-             data-type="Movie"
-             data-rating="${movie.vote_average ? Number(movie.vote_average).toFixed(1) : '8.0'}"
-             data-overview="${movie.overview || 'No description available.'}"
-             data-genres="${movie.genres || 'Sci-Fi'}">
+             data-title="${item.title}" 
+             data-year="${item.release_date ? item.release_date.split('-')[0] : 'N/A'}"
+             data-type="${item.type}"
+             data-rating="${item.vote_average ? Number(item.vote_average).toFixed(1) : '8.0'}"
+             data-overview="${item.overview || 'No description available.'}"
+             data-genres="${item.genres || 'Sci-Fi'}">
             <div class="poster-wrapper">
-                <img src="${movie.poster_path ? (movie.poster_path.startsWith('http') ? movie.poster_path : API_CONFIG.IMAGE_BASE + movie.poster_path) : 'https://via.placeholder.com/500x750'}" alt="${movie.title}">
-                <div class="rating-badge"><i class="fa-solid fa-star"></i> ${movie.vote_average ? Number(movie.vote_average).toFixed(1) : 'N/A'}</div>
-                <div class="status-badge">PLAN TO WATCH</div>
+                <img src="${item.poster_path}" alt="${item.title}">
+                <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.vote_average ? Number(item.vote_average).toFixed(1) : 'N/A'}</div>
+                <div class="status-badge">${item.type}</div>
             </div>
             <div class="movie-info">
                 <div>
-                    <div class="movie-title">${movie.title}</div>
-                    <div class="movie-meta">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} · Movie</div>
+                    <div class="movie-title">${item.title}</div>
+                    <div class="movie-meta">${item.release_date ? item.release_date.split('-')[0] : 'N/A'} · ${item.type}</div>
                 </div>
                 <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
             </div>
@@ -83,7 +106,7 @@ async function fetchAndRenderMovies() {
     `).join('');
 }
 
-// --- SOCIAL FEED & USER SUGGESTIONS ---
+// --- SOCIAL FEED ---
 function renderSocialFeed(posts) {
     const feedContainer = document.getElementById('socialFeed');
     if (!feedContainer) return;
@@ -110,7 +133,7 @@ function renderSocialFeed(posts) {
                          data-year="${post.media.year}"
                          data-type="${post.media.type}"
                          data-rating="${post.rating || '8.5'}"
-                         data-overview="High intensity animation set in Night City."
+                         data-overview="High intensity anime set in Night City."
                          data-genres="Anime · Sci-Fi">
                         <img src="${post.media.posterUrl}" alt="${post.media.title}">
                         <div class="media-info">
@@ -161,7 +184,7 @@ function initSocialData() {
             media: {
                 title: 'Cyberpunk 2077: Edgerunners',
                 year: '2022',
-                type: 'Anime',
+                type: 'TV Show',
                 posterUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop'
             }
         }
@@ -181,21 +204,13 @@ function openMediaModal(data) {
     const modal = document.getElementById('mediaModal');
     if (!modal) return;
 
-    const posterEl = document.getElementById('modalPoster');
-    const titleEl = document.getElementById('modalTitle');
-    const subheadEl = document.getElementById('modalSubheading');
-    const overviewEl = document.getElementById('modalOverview');
-    const ratingEl = document.getElementById('modalRating');
-    const runtimeEl = document.getElementById('modalRuntime');
-    const genresEl = document.getElementById('modalGenres');
-
-    if (posterEl) posterEl.src = data.posterUrl || '';
-    if (titleEl) titleEl.textContent = data.title || 'Untitled';
-    if (subheadEl) subheadEl.textContent = `${data.type || 'Media'} · ${data.year || 'N/A'}`;
-    if (overviewEl) overviewEl.textContent = data.overview || 'No description available.';
-    if (ratingEl) ratingEl.textContent = data.rating || 'N/A';
-    if (runtimeEl) runtimeEl.textContent = data.runtime || '2h 10m';
-    if (genresEl) genresEl.textContent = data.genres || 'Sci-Fi';
+    document.getElementById('modalPoster').src = data.posterUrl || '';
+    document.getElementById('modalTitle').textContent = data.title || 'Untitled';
+    document.getElementById('modalSubheading').textContent = `${data.type || 'Media'} · ${data.year || 'N/A'}`;
+    document.getElementById('modalOverview').textContent = data.overview || 'No description available.';
+    document.getElementById('modalRating').textContent = data.rating || 'N/A';
+    document.getElementById('modalRuntime').textContent = data.runtime || '2h 10m';
+    document.getElementById('modalGenres').textContent = data.genres || 'Sci-Fi';
 
     modal.classList.add('active');
 }
@@ -205,20 +220,31 @@ function closeMediaModal() {
     if (modal) modal.classList.remove('active');
 }
 
-// --- MAIN APPLICATION INITIALIZATION ---
+// --- MAIN INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Navigation setup
+
+    // 1. Navigation & Filter Handling
     const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
-    function switchView(targetId) {
+    function switchView(targetId, filter = 'all') {
         views.forEach(view => view.classList.remove("active"));
         const targetView = document.getElementById(targetId);
         if (targetView) targetView.classList.add("active");
 
         navLinks.forEach(l => {
-            l.classList.toggle("active", l.getAttribute("data-target") === targetId);
+            const matchesTarget = l.getAttribute("data-target") === targetId;
+            const matchesFilter = !l.hasAttribute("data-filter") || l.getAttribute("data-filter") === filter;
+            l.classList.toggle("active", matchesTarget && matchesFilter);
         });
+
+        if (targetId === 'homeView') {
+            activeFilter = filter;
+            fetchAndRenderMovies(filter);
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+            });
+        }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -227,19 +253,31 @@ document.addEventListener("DOMContentLoaded", () => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
             const targetId = link.getAttribute("data-target");
-            if (targetId) switchView(targetId);
+            const filter = link.getAttribute("data-filter") || 'all';
+            if (targetId) switchView(targetId, filter);
         });
     });
 
-    // 2. Global Event Delegation (Handles Modals & All Interactive Buttons)
+    // 2. Global Event Delegation
     document.addEventListener('click', (e) => {
-        // Modal Close Button or Backdrop
+        // Modal Close
         if (e.target.closest('#modalCloseBtn') || e.target.id === 'mediaModal') {
             closeMediaModal();
             return;
         }
 
-        // Follow Button Toggle
+        // Category Filter Tabs
+        const filterBtn = e.target.closest('.filter-btn');
+        if (filterBtn) {
+            const filter = filterBtn.getAttribute('data-filter');
+            activeFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            filterBtn.classList.add('active');
+            fetchAndRenderMovies(filter);
+            return;
+        }
+
+        // Follow Button
         const followBtn = e.target.closest('.btn-follow');
         if (followBtn) {
             e.stopPropagation();
@@ -248,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Like Button Toggle
+        // Like Button
         const likeBtn = e.target.closest('.like-btn');
         if (likeBtn) {
             e.stopPropagation();
@@ -261,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Action Circle (+ Add to Watchlist)
+        // Watchlist + Button
         const actionCircle = e.target.closest('.action-circle');
         if (actionCircle) {
             e.stopPropagation();
@@ -272,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Modal Status Buttons
+        // Modal Controls
         const statusBtn = e.target.closest('.status-btn');
         if (statusBtn) {
             document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
@@ -280,7 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Modal Rating Numbers
         const rateBtn = e.target.closest('.rate-num');
         if (rateBtn) {
             document.querySelectorAll('.rate-num').forEach(b => b.classList.remove('active'));
@@ -288,22 +325,22 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Movie / Media Card Click -> Open Modal
+        // Card Click -> Open Modal
         const card = e.target.closest('.movie-card, .media-card');
         if (card) {
-            const title = card.dataset.title || card.querySelector('.movie-title, h4')?.textContent || 'Media Title';
-            const year = card.dataset.year || '2024';
-            const type = card.dataset.type || 'Movie';
-            const rating = card.dataset.rating || '8.0';
-            const overview = card.dataset.overview || 'Overview details for this title...';
-            const genres = card.dataset.genres || 'Sci-Fi · Drama';
-            const posterUrl = card.querySelector('img')?.src || '';
-
-            openMediaModal({ title, year, type, rating, overview, genres, posterUrl });
+            openMediaModal({
+                title: card.dataset.title || card.querySelector('.movie-title, h4')?.textContent || 'Title',
+                year: card.dataset.year || '2024',
+                type: card.dataset.type || 'Movie',
+                rating: card.dataset.rating || '8.0',
+                overview: card.dataset.overview || 'Overview details...',
+                genres: card.dataset.genres || 'Sci-Fi',
+                posterUrl: card.querySelector('img')?.src || ''
+            });
         }
     });
 
-    // 3. Initial Execution
-    fetchAndRenderMovies();
+    // 3. Initial Load
+    fetchAndRenderMovies('all');
     initSocialData();
 });

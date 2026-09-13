@@ -40,12 +40,15 @@ body {
     margin-bottom: 1rem;
 }
 
-/* --- Site Header Wrapper --- */
+/* --- Site Header Wrapper & Nav Fixes --- */
 .site-header {
     margin-bottom: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: var(--bg-color);
 }
 
-/* --- Navbar --- */
 nav {
     display: flex;
     justify-content: space-between;
@@ -66,6 +69,7 @@ nav {
     align-items: center;
     gap: 0.5rem;
     color: var(--accent-color);
+    cursor: pointer;
 }
 
 .logo span { 
@@ -108,6 +112,28 @@ nav {
     font-weight: 600;
     font-size: 0.85rem;
     flex-shrink: 0;
+    cursor: pointer;
+}
+
+/* --- Navigation Link States --- */
+.nav-links a,
+.nav-links a:visited,
+.nav-links a:active {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.nav-links a:hover {
+    color: var(--text-main);
+}
+
+.nav-links a.active {
+    color: var(--accent-color);
+    font-weight: 600;
 }
 
 /* --- Hero Section --- */
@@ -230,12 +256,14 @@ nav {
     font-size: 0.85rem; 
 }
 
-/* --- Section Headers --- */
+/* --- Section Headers & Filter Tabs --- */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
     margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .section-header h2 { 
@@ -252,6 +280,37 @@ nav {
     color: var(--accent-color); 
     text-decoration: none; 
     font-size: 0.85rem; 
+}
+
+/* Section Header Filter Controls */
+.filter-tabs {
+    display: flex;
+    gap: 0.4rem;
+    background-color: var(--surface-color);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.filter-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    color: var(--text-main);
+}
+
+.filter-btn.active {
+    background-color: var(--accent-color);
+    color: var(--text-main);
+    font-weight: 600;
 }
 
 /* --- Movie Grid --- */
@@ -369,44 +428,24 @@ nav {
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
-    text-decoration: none;
+    text-decoration: none !important;
     font-size: 0.65rem;
     font-weight: 500;
     padding: 0.4rem 0.75rem;
     border-radius: 16px;
     transition: all 0.2s ease;
     flex: 1;
-}
-
-.mobile-nav-link i {
-    font-size: 1.1rem;
-}
-
-/* --- Navigation Link States --- */
-.nav-links a,
-.nav-links a:visited,
-.nav-links a:active {
-    color: var(--text-muted);
-    text-decoration: none;
-}
-
-.nav-links a:hover {
-    color: var(--text-main);
-}
-
-.nav-links a.active {
-    color: var(--text-main);
-}
-
-.mobile-nav-link {
     color: var(--text-muted) !important;
-    text-decoration: none !important;
     background-color: transparent;
 }
 
 .mobile-nav-link i,
 .mobile-nav-link span {
     color: var(--text-muted) !important;
+}
+
+.mobile-nav-link i {
+    font-size: 1.1rem;
 }
 
 .mobile-nav-link:hover {
@@ -473,7 +512,7 @@ nav {
     }
 }
 
-/* SOCIAL PAGE LAYOUT */
+/* --- Social Page Layout --- */
 .social-layout {
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -488,7 +527,7 @@ nav {
     }
 }
 
-/* FEED CARDS */
+/* --- Feed Cards --- */
 .social-feed {
     display: flex;
     flex-direction: column;
@@ -567,7 +606,7 @@ nav {
     font-weight: 600;
 }
 
-/* MEDIA EMBED INSIDE CARDS */
+/* --- Media Embed Inside Cards --- */
 .media-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -622,7 +661,7 @@ nav {
     color: #fff;
 }
 
-/* SIDEBAR: PEOPLE TO FOLLOW */
+/* --- Sidebar: People to Follow --- */
 .sidebar-card {
     background-color: var(--surface-color, #161a23);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -665,7 +704,7 @@ nav {
     color: #10b981;
 }
 
-/* MODAL BACKDROP & CONTAINER */
+/* --- Modal Backdrop & Container --- */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -675,7 +714,7 @@ nav {
     background: rgba(0, 0, 0, 0.85); 
     -webkit-backdrop-filter: blur(8px); 
     backdrop-filter: blur(8px);
-    display: none; /* Hidden by default */
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 10000;
@@ -713,7 +752,7 @@ nav {
     z-index: 10;
 }
 
-/* LEFT POSTER */
+/* Left Poster */
 .modal-left {
     width: 40%;
     height: 100%;
@@ -725,7 +764,7 @@ nav {
     object-fit: cover;
 }
 
-/* RIGHT CONTENT */
+/* Right Content */
 .modal-right {
     width: 60%;
     padding: 2.5rem;
@@ -762,7 +801,7 @@ nav {
     margin-bottom: 1.5rem;
 }
 
-/* CONTROLS & FORM */
+/* Controls & Form */
 .modal-section {
     margin-bottom: 1.25rem;
 }

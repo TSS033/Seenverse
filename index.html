@@ -15,7 +15,7 @@
 </head>
 <body>
 
-    <!-- Header & Navigation -->
+    <!-- Navigation Header -->
     <header class="site-header">
         <nav>
             <div class="nav-left">
@@ -24,7 +24,9 @@
                     <span>StreamHub</span>
                 </div>
                 <div class="nav-links">
-                    <a href="#" data-target="homeView" class="active">Home</a>
+                    <a href="#" data-target="homeView" data-filter="all" class="active">Home</a>
+                    <a href="#" data-target="homeView" data-filter="Movie">Movies</a>
+                    <a href="#" data-target="homeView" data-filter="TV Show">TV Shows</a>
                     <a href="#" data-target="socialView">Social</a>
                 </div>
             </div>
@@ -88,12 +90,16 @@
                 <h2>Made For You</h2>
                 <p>Based on your recent interest in Sci-Fi & Cyberpunk</p>
             </div>
-            <a href="#">See All</a>
+            <div class="filter-tabs">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="Movie">Movies</button>
+                <button class="filter-btn" data-filter="TV Show">TV Shows</button>
+            </div>
         </div>
 
         <div id="madeForYouGrid" class="movie-grid">
             <!-- Fallback static cards if TMDB API key is not supplied -->
-            <div class="movie-card">
+            <div class="movie-card" data-title="The Matrix" data-year="1999" data-type="Movie" data-rating="8.7" data-overview="A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers." data-genres="Sci-Fi · Action">
                 <div class="poster-wrapper">
                     <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop" alt="The Matrix">
                     <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.7</div>
@@ -108,7 +114,7 @@
                 </div>
             </div>
 
-            <div class="movie-card">
+            <div class="movie-card" data-title="Cyberpunk: Edgerunners" data-year="2022" data-type="TV Show" data-rating="8.3" data-overview="A street kid trying to survive in a technology and body modification-obsessed city of the future." data-genres="Anime · Sci-Fi">
                 <div class="poster-wrapper">
                     <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop" alt="Cyberpunk: Edgerunners">
                     <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.3</div>
@@ -123,7 +129,7 @@
                 </div>
             </div>
 
-            <div class="movie-card">
+            <div class="movie-card" data-title="Interstellar" data-year="2014" data-type="Movie" data-rating="8.6" data-overview="When Earth becomes uninhabitable, a team of ex-NASA pilots travels through a wormhole in search of a new home." data-genres="Sci-Fi · Drama">
                 <div class="poster-wrapper">
                     <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop" alt="Interstellar">
                     <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.6</div>
@@ -138,7 +144,7 @@
                 </div>
             </div>
 
-            <div class="movie-card">
+            <div class="movie-card" data-title="Dune: Part One" data-year="2021" data-type="Movie" data-rating="8.0" data-overview="A noble family becomes embroiled in a war for control over the galaxy's most valuable asset while its heir is haunted by visions of a dark future." data-genres="Sci-Fi · Adventure">
                 <div class="poster-wrapper">
                     <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop" alt="Dune">
                     <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.0</div>
@@ -181,7 +187,7 @@
                         <p class="activity-text">
                             Finished watching and loved every second of it! <span class="rating-highlight"><i class="fa-solid fa-star"></i> 9.0/10</span>
                         </p>
-                        <div class="media-card">
+                        <div class="media-card" data-title="Cyberpunk: Edgerunners" data-year="2022" data-type="TV Show" data-rating="9.0" data-overview="A street kid trying to survive in a technology and body modification-obsessed city." data-genres="Anime · Sci-Fi">
                             <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop" alt="Cyberpunk: Edgerunners">
                             <div class="media-info">
                                 <h4>Cyberpunk: Edgerunners</h4>
@@ -190,8 +196,8 @@
                         </div>
                     </div>
                     <div class="feed-actions">
-                        <button class="action-btn"><i class="fa-regular fa-heart"></i> 14</button>
-                        <button class="action-btn"><i class="fa-regular fa-comment"></i> 3</button>
+                        <button class="action-btn like-btn"><i class="fa-regular fa-heart"></i> <span class="like-count">14</span></button>
+                        <button class="action-btn comment-btn"><i class="fa-regular fa-comment"></i> 3</button>
                     </div>
                 </div>
 
@@ -208,7 +214,7 @@
                         <p class="activity-text">
                             Added to library plan to watch list.
                         </p>
-                        <div class="media-card">
+                        <div class="media-card" data-title="Interstellar" data-year="2014" data-type="Movie" data-rating="8.6" data-overview="When Earth becomes uninhabitable, a team of ex-NASA pilots travels through a wormhole in search of a new home." data-genres="Sci-Fi · Drama">
                             <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300&auto=format&fit=crop" alt="Interstellar">
                             <div class="media-info">
                                 <h4>Interstellar</h4>
@@ -217,8 +223,8 @@
                         </div>
                     </div>
                     <div class="feed-actions">
-                        <button class="action-btn"><i class="fa-regular fa-heart"></i> 8</button>
-                        <button class="action-btn"><i class="fa-regular fa-comment"></i> 1</button>
+                        <button class="action-btn like-btn"><i class="fa-regular fa-heart"></i> <span class="like-count">8</span></button>
+                        <button class="action-btn comment-btn"><i class="fa-regular fa-comment"></i> 1</button>
                     </div>
                 </div>
             </div>
@@ -252,9 +258,17 @@
 
     <!-- MOBILE BOTTOM NAVBAR -->
     <nav class="mobile-nav">
-        <a href="#" data-target="homeView" class="mobile-nav-link active">
+        <a href="#" data-target="homeView" data-filter="all" class="mobile-nav-link active">
             <i class="fa-solid fa-house"></i>
             <span>Home</span>
+        </a>
+        <a href="#" data-target="homeView" data-filter="Movie" class="mobile-nav-link">
+            <i class="fa-solid fa-film"></i>
+            <span>Movies</span>
+        </a>
+        <a href="#" data-target="homeView" data-filter="TV Show" class="mobile-nav-link">
+            <i class="fa-solid fa-tv"></i>
+            <span>TV</span>
         </a>
         <a href="#" data-target="socialView" class="mobile-nav-link">
             <i class="fa-solid fa-users"></i>
