@@ -21,8 +21,8 @@ body {
     color: var(--text-main);
     font-family: var(--font-family);
     line-height: 1.5;
-    padding: 0 2rem;
-    padding-bottom: 5rem; /* Space for mobile nav on small screens */
+    padding: 0 1.5rem;
+    padding-bottom: 5.5rem; /* Space for fixed mobile nav */
     max-width: 1400px;
     margin: 0 auto;
 }
@@ -37,13 +37,13 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 0;
+    padding: 1.2rem 0;
 }
 
 .nav-left {
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 .logo {
@@ -57,16 +57,9 @@ nav {
 
 .logo span { color: var(--text-main); }
 
-.nav-links a {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.nav-links a.active, .nav-links a:hover {
-    color: var(--text-main);
+/* Hidden by default on mobile screens */
+.nav-links {
+    display: none;
 }
 
 .nav-right {
@@ -81,7 +74,7 @@ nav {
     padding: 0.5rem 1rem;
     border-radius: 20px;
     color: var(--text-main);
-    width: 250px;
+    width: 180px;
     font-family: var(--font-family);
 }
 
@@ -98,6 +91,7 @@ nav {
     justify-content: center;
     font-weight: 600;
     font-size: 0.85rem;
+    flex-shrink: 0;
 }
 
 /* --- Hero Section --- */
@@ -107,8 +101,8 @@ nav {
     background-size: cover;
     background-position: center;
     border-radius: 24px;
-    padding: 4rem 3rem;
-    min-height: 400px;
+    padding: 3rem 1.5rem;
+    min-height: 380px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -128,7 +122,7 @@ nav {
 }
 
 .hero h1 {
-    font-size: 3.5rem;
+    font-size: 2.75rem;
     line-height: 1.1;
     margin-bottom: 1rem;
 }
@@ -137,11 +131,12 @@ nav {
 
 .hero-meta {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     margin-bottom: 1rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .hero-meta .rating {
@@ -152,13 +147,14 @@ nav {
 .hero-desc {
     max-width: 400px;
     color: var(--text-muted);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     margin-bottom: 2rem;
 }
 
 .hero-actions {
     display: flex;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .btn {
@@ -191,21 +187,21 @@ nav {
 /* --- Stats Row --- */
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
 }
 
 .stat-card {
     background-color: var(--surface-color);
-    padding: 1.5rem;
+    padding: 1.25rem;
     border-radius: var(--border-radius);
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.stat-card h3 { font-size: 1.5rem; }
+.stat-card h3 { font-size: 1.25rem; }
 .stat-card p { color: var(--text-muted); font-size: 0.85rem; }
 
 /* --- Section Headers --- */
@@ -216,15 +212,15 @@ nav {
     margin-bottom: 1.5rem;
 }
 
-.section-header h2 { font-size: 1.5rem; }
-.section-header p { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem; }
+.section-header h2 { font-size: 1.25rem; }
+.section-header p { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
 .section-header a { color: var(--accent-color); text-decoration: none; font-size: 0.85rem; }
 
 /* --- Movie Grid --- */
 .movie-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
     margin-bottom: 3rem;
 }
 
@@ -288,7 +284,7 @@ nav {
     margin-top: 0.5rem;
 }
 
-.movie-title { font-size: 0.95rem; font-weight: 600; }
+.movie-title { font-size: 0.9rem; font-weight: 600; }
 .movie-meta { font-size: 0.75rem; color: var(--text-muted); }
 
 .action-circle {
@@ -302,9 +298,10 @@ nav {
     justify-content: center;
     color: var(--text-muted);
     font-size: 0.7rem;
+    flex-shrink: 0;
 }
 
-/* --- Mobile Navigation --- */
+/* --- Mobile Bottom Navigation (Fixed) --- */
 .mobile-nav {
     position: fixed;
     bottom: 0;
@@ -314,21 +311,20 @@ nav {
     display: flex;
     justify-content: space-around;
     padding: 0.75rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    z-index: 1000;
-}
-
-.mobile-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: var(--surface-color);
-    display: flex;
-    justify-content: space-around;
-    padding: 0.75rem 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     z-index: 9999;
+}
+
+.mobile-nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: color 0.2s;
 }
 
 .mobile-nav-link i {
@@ -339,43 +335,47 @@ nav {
     color: var(--accent-color);
 }
 
-/* --- Responsive Breakpoint for Tablet & PC (>= 850px) --- */
+/* --- Responsive Breakpoint for Tablets & PC (>= 850px) --- */
 @media (min-width: 850px) {
-    .mobile-nav {
-        display: none;
-    }
-
     body {
-        padding-bottom: 2rem;
+        padding: 0 2rem;
+        padding-bottom: 2rem; /* Remove mobile bottom padding */
     }
 
-    nav {
-        padding: 1.5rem 0;
+    .mobile-nav {
+        display: none; /* Hide mobile bottom nav on larger screens */
     }
 
     .nav-links {
-        display: none;
+        display: flex; /* Show top navbar links on PC */
+        gap: 2rem;
+        margin-left: 2rem;
     }
 
     .search-bar {
-        width: 300px;
+        width: 250px;
     }
 
     .hero {
-        min-height: 400px;
         padding: 4rem 3rem;
+        min-height: 400px;
     }
 
     .hero h1 {
         font-size: 3.5rem;
     }
-}
 
-/* --- Responsive Breakpoint for Large Desktop (>= 1200px) --- */
-@media (min-width: 1200px) {
-    .nav-links {
-        display: flex;
-        gap: 2rem;
-        margin-left: 2rem;
+    .stats-row {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1.5rem;
     }
 }
