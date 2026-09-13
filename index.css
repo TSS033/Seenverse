@@ -100,6 +100,12 @@ nav {
     outline: 1px solid var(--accent-color); 
 }
 
+/* --- Profile Avatar & Dropdown Menu --- */
+.avatar-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
 .avatar {
     background-color: #6366f1;
     color: white;
@@ -113,6 +119,58 @@ nav {
     font-size: 0.85rem;
     flex-shrink: 0;
     cursor: pointer;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 190px;
+    background-color: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.5rem 0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.profile-dropdown.active {
+    display: flex;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item i {
+    font-size: 0.95rem;
+    width: 18px;
+    text-align: center;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.08);
+    margin: 0.35rem 0;
+}
+
+.dropdown-item.danger:hover {
+    color: #ef4444;
 }
 
 /* --- Navigation Link States --- */
@@ -705,7 +763,6 @@ nav {
 }
 
 /* --- Modal Backdrop & Container --- */
-./* MODAL BACKDROP FIX */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -721,12 +778,6 @@ nav {
     z-index: 10000;
     opacity: 0;
     transition: opacity 0.25s ease;
-}
-
-/* SHOW MODAL WHEN ACTIVE */
-.modal-backdrop.active {
-    display: flex;
-    opacity: 1;
 }
 
 .modal-backdrop.active {

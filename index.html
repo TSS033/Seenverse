@@ -34,7 +34,26 @@
             </div>
             <div class="nav-right">
                 <input type="text" class="search-bar" placeholder="Search movies, TV...">
-                <div class="avatar">JS</div>
+                <div class="avatar-wrapper">
+                    <div class="avatar">JS</div>
+                    
+                    <!-- PROFILE DROPDOWN MENU -->
+                    <div id="profileDropdown" class="profile-dropdown">
+                        <a href="#" id="dropdownProfile" class="dropdown-item">
+                            <i class="fa-solid fa-user"></i> Profile
+                        </a>
+                        <a href="#" id="dropdownNotifications" class="dropdown-item">
+                            <i class="fa-solid fa-envelope"></i> Notifications
+                        </a>
+                        <a href="#" id="dropdownSettings" class="dropdown-item">
+                            <i class="fa-solid fa-gear"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" id="dropdownLogout" class="dropdown-item danger">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>

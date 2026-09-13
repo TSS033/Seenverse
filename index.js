@@ -331,6 +331,7 @@ function closeMediaModal() {
 document.addEventListener("DOMContentLoaded", () => {
 
     const avatarEl = document.querySelector('.avatar');
+    const profileDropdown = document.getElementById('profileDropdown');
     const authModal = document.getElementById('authModal');
     const authForm = document.getElementById('authForm');
     const authTitle = document.getElementById('authTitle');
@@ -350,20 +351,47 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 console.log('No user authenticated');
                 if (avatarEl) avatarEl.textContent = 'JS';
+                if (profileDropdown) profileDropdown.classList.remove('active');
             }
         });
     }
 
-    // 2. Auth Modal Control & Event Listeners
+    // 2. Auth & Profile Dropdown Control
     if (avatarEl) {
-        avatarEl.addEventListener('click', () => {
+        avatarEl.addEventListener('click', (e) => {
+            e.stopPropagation();
             if (currentUser) {
-                if (confirm('Are you sure you want to sign out?')) signOut();
+                if (profileDropdown) profileDropdown.classList.toggle('active');
             } else if (authModal) {
                 authModal.classList.add('active');
             }
         });
     }
+
+    // Dropdown Item Action Listeners
+    document.getElementById('dropdownLogout')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (profileDropdown) profileDropdown.classList.remove('active');
+        signOut();
+    });
+
+    document.getElementById('dropdownProfile')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Profile view coming soon!');
+        if (profileDropdown) profileDropdown.classList.remove('active');
+    });
+
+    document.getElementById('dropdownNotifications')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Notifications coming soon!');
+        if (profileDropdown) profileDropdown.classList.remove('active');
+    });
+
+    document.getElementById('dropdownSettings')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Settings coming soon!');
+        if (profileDropdown) profileDropdown.classList.remove('active');
+    });
 
     if (authToggleBtn) {
         authToggleBtn.addEventListener('click', (e) => {
@@ -433,6 +461,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Global Event Delegation
     document.addEventListener('click', (e) => {
+        // Dismiss Profile Dropdown on Click Outside
+        if (profileDropdown && !e.target.closest('.avatar-wrapper')) {
+            profileDropdown.classList.remove('active');
+        }
+
         // Modal Close (Media or Auth)
         if (e.target.closest('#modalCloseBtn') || e.target.id === 'mediaModal') {
             closeMediaModal();
