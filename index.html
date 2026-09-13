@@ -276,7 +276,159 @@
             </aside>
         </div>
     </section>
+<!-- VIEW 3: PROFILE PAGE -->
+<section id="profileView" class="view-section">
+    <!-- Profile Banner & Header -->
+    <div class="profile-banner-wrapper">
+        <div class="profile-banner"></div>
+        <div class="profile-header-content">
+            <div class="profile-avatar-container">
+                <div class="profile-avatar-lg">JS</div>
+            </div>
+            <div class="profile-user-info">
+                <div class="profile-username-row">
+                    <h1 id="profileUsername">JohnDoe</h1>
+                    <span class="profile-badge">PRO MEMBER</span>
+                </div>
+            </div>
+            <button class="btn btn-secondary profile-action-btn">
+                <i class="fa-solid fa-gear"></i> Edit Profile
+            </button>
+        </div>
+        
+        <!-- Profile Navigation Tabs -->
+        <div class="profile-nav-tabs">
+            <a href="#" class="profile-tab active">Overview</a>
+            <a href="#" class="profile-tab">Watchlist</a>
+            <a href="#" class="profile-tab">Favorites</a>
+            <a href="#" class="profile-tab">Stats</a>
+            <a href="#" class="profile-tab">Social</a>
+            <a href="#" class="profile-tab">Reviews</a>
+        </div>
+    </div>
 
+    <!-- Profile Grid Layout -->
+    <div class="profile-grid">
+        <!-- Main Left Column -->
+        <div class="profile-main">
+            
+            <!-- Genre Overview -->
+            <div class="profile-card">
+                <h3>Genre Overview</h3>
+                <div class="genre-chips-row">
+                    <div class="genre-chip" style="--chip-color: #10b981;">
+                        <span class="chip-label">Sci-Fi</span>
+                        <span class="chip-count">48 Entries</span>
+                    </div>
+                    <div class="genre-chip" style="--chip-color: #ff6b4a;">
+                        <span class="chip-label">Action</span>
+                        <span class="chip-count">32 Entries</span>
+                    </div>
+                    <div class="genre-chip" style="--chip-color: #6366f1;">
+                        <span class="chip-label">Drama</span>
+                        <span class="chip-count">24 Entries</span>
+                    </div>
+                    <div class="genre-chip" style="--chip-color: #ec4899;">
+                        <span class="chip-label">Anime</span>
+                        <span class="chip-count">18 Entries</span>
+                    </div>
+                    <div class="genre-chip" style="--chip-color: #f59e0b;">
+                        <span class="chip-label">Adventure</span>
+                        <span class="chip-count">12 Entries</span>
+                    </div>
+                </div>
+                <!-- Visual Genre Bar -->
+                <div class="genre-distribution-bar">
+                    <span style="width: 36%; background-color: #10b981;"></span>
+                    <span style="width: 24%; background-color: #ff6b4a;"></span>
+                    <span style="width: 18%; background-color: #6366f1;"></span>
+                    <span style="width: 13%; background-color: #ec4899;"></span>
+                    <span style="width: 9%; background-color: #f59e0b;"></span>
+                </div>
+            </div>
+
+            <!-- Favorite / Top Movies Grid -->
+            <div class="profile-card">
+                <div class="section-header" style="margin-bottom: 1rem;">
+                    <h3>Favorite Media</h3>
+                    <a href="#">View All</a>
+                </div>
+                <div class="movie-grid profile-media-mini-grid">
+                    <div class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300&auto=format&fit=crop" alt="Blade Runner 2049">
+                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 9.5</div>
+                        </div>
+                        <div class="movie-title">Blade Runner 2049</div>
+                    </div>
+                    <div class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop" alt="Edgerunners">
+                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 9.0</div>
+                        </div>
+                        <div class="movie-title">Edgerunners</div>
+                    </div>
+                    <div class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=300&auto=format&fit=crop" alt="Dune">
+                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.8</div>
+                        </div>
+                        <div class="movie-title">Dune: Part Two</div>
+                    </div>
+                    <div class="movie-card">
+                        <div class="poster-wrapper">
+                            <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=300&auto=format&fit=crop" alt="The Matrix">
+                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.7</div>
+                        </div>
+                        <div class="movie-title">The Matrix</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Stats Column -->
+        <div class="profile-sidebar">
+            <div class="profile-card">
+                <h3>Watch Statistics</h3>
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-box">
+                        <span class="stat-num">134</span>
+                        <span class="stat-lbl">Total Media</span>
+                    </div>
+                    <div class="profile-stat-box">
+                        <span class="stat-num">14.2</span>
+                        <span class="stat-lbl">Days Watched</span>
+                    </div>
+                    <div class="profile-stat-box">
+                        <span class="stat-num">8.4</span>
+                        <span class="stat-lbl">Mean Score</span>
+                    </div>
+                </div>
+
+                <div class="stat-progress-group">
+                    <div class="progress-info">
+                        <span>Completed Movies</span>
+                        <span>92 / 100</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: 92%;"></div>
+                    </div>
+                </div>
+
+                <div class="stat-progress-group">
+                    <div class="progress-info">
+                        <span>TV Series Tracked</span>
+                        <span>42 / 50</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: 84%; background-color: #6366f1;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
     <!-- MOBILE BOTTOM NAVBAR -->
     <nav class="mobile-nav">
         <a href="#" data-target="homeView" data-filter="all" class="mobile-nav-link active">

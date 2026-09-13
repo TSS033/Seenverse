@@ -73,10 +73,28 @@ function getInitials(name) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
 }
 
+function updateProfileUI(user) {
+    const usernameEl = document.getElementById('profileUsername');
+    const profileAvatarLg = document.querySelector('.profile-avatar-lg');
+    
+    if (user) {
+        const username = user.user_metadata?.username || user.email.split('@')[0];
+        if (usernameEl) usernameEl.textContent = username;
+        if (profileAvatarLg) profileAvatarLg.textContent = getInitials(username);
+    } else {
+        if (usernameEl) usernameEl.textContent = 'Guest User';
+        if (profileAvatarLg) profileAvatarLg.textContent = 'JS';
+    }
+}
+
 // --- AUTHENTICATION FUNCTIONS ---
 async function signUp(email, password, username) {
     if (!supabaseClient) return console.warn('Supabase client not initialized');
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    const { data, error } = await supabaseClient.auth.signUp({ 
+        email, 
+        password,
+        options: { data: { username: username || email.split('@')[0] } }
+    });
     
     if (error) return alert('Signup error: ' + error.message);
     
@@ -347,10 +365,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (currentUser) {
                 console.log('Active user authenticated:', currentUser.id);
                 if (avatarEl) avatarEl.textContent = getInitials(currentUser.email);
+                updateProfileUI(currentUser);
                 fetchUserWatchlist(currentUser.id);
             } else {
                 console.log('No user authenticated');
                 if (avatarEl) avatarEl.textContent = 'JS';
+                updateProfileUI(null);
                 if (profileDropdown) profileDropdown.classList.remove('active');
             }
         });
@@ -377,8 +397,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById('dropdownProfile')?.addEventListener('click', (e) => {
         e.preventDefault();
-        alert('Profile view coming soon!');
         if (profileDropdown) profileDropdown.classList.remove('active');
+        switchView('profileView');
     });
 
     document.getElementById('dropdownNotifications')?.addEventListener('click', (e) => {
@@ -398,7 +418,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
 
-            if (authTitle) authTitle.textContent = isSignUpMode ? 'Create Account' : 'Welcome to StreamHub';
+            if (authTitle) authTitle.textContent = isSignUpMode ? 'Create Account' : 'Welcome to Seenverse';
             if (authSubmitBtn) authSubmitBtn.textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
             if (authToggleText) authToggleText.textContent = isSignUpMode ? 'Already have an account?' : "Don't have an account?";
             authToggleBtn.textContent = isSignUpMode ? 'Sign In' : 'Sign Up';
@@ -422,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 3. Navigation & Filter Handling
+    // 3. Navigation & View Switching
     const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
     const views = document.querySelectorAll(".view-section");
 
@@ -461,6 +481,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Global Event Delegation
     document.addEventListener('click', (e) => {
+        // Profile Sub-tab Navigation
+        const profileTab = e.target.closest('.profile-tab');
+        if (profileTab) {
+            e.preventDefault();
+            document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+            profileTab.classList.add('active');
+            return;
+        }
+
         // Dismiss Profile Dropdown on Click Outside
         if (profileDropdown && !e.target.closest('.avatar-wrapper')) {
             profileDropdown.classList.remove('active');
