@@ -171,3 +171,65 @@ async function fetchSocialData() {
         console.error("Failed to load social feed data:", error);
     }
 }
+// Open Modal with targeted Item Data
+function openMediaModal(data) {
+    const modal = document.getElementById('mediaModal');
+    
+    document.getElementById('modalPoster').src = data.posterUrl;
+    document.getElementById('modalTitle').textContent = data.title;
+    document.getElementById('modalSubheading').textContent = `${data.type} · ${data.year}`;
+    document.getElementById('modalOverview').textContent = data.overview;
+    document.getElementById('modalRating').textContent = data.rating;
+    document.getElementById('modalRuntime').textContent = data.runtime || '2h 10m';
+    document.getElementById('modalGenres').textContent = data.genres || 'Drama · Sci-Fi';
+
+    modal.classList.add('active');
+}
+
+// Close Modal logic
+document.getElementById('modalCloseBtn')?.addEventListener('click', () => {
+    document.getElementById('mediaModal').classList.remove('active');
+});
+
+document.getElementById('mediaModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'mediaModal') {
+        document.getElementById('mediaModal').classList.remove('active');
+    }
+});
+
+// Delegate click events on media cards across the app
+document.addEventListener('click', (e) => {
+    const card = e.target.closest('.movie-card, .media-card');
+    if (card) {
+        // Collect card details dynamically (or from data attributes)
+        const title = card.querySelector('.movie-title, h4')?.textContent || 'Title';
+        const meta = card.querySelector('.movie-meta, p')?.textContent || '2024 · Movie';
+        const posterUrl = card.querySelector('img')?.src || '';
+        const rating = card.querySelector('.rating-badge')?.textContent?.trim() || '8.0';
+
+        openMediaModal({
+            title: title,
+            type: meta.split('·')[1]?.trim() || 'Movie',
+            year: meta.split('·')[0]?.trim() || '2025',
+            posterUrl: posterUrl,
+            rating: rating,
+            overview: 'A detective traces a missing memory through the rain-soaked districts of a divided city.',
+            genres: 'Thriller · Mystery'
+        });
+    }
+});
+
+// Status and Rating selectors toggle inside modal
+document.querySelectorAll('.status-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+    });
+});
+
+document.querySelectorAll('.rate-num').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.rate-num').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+    });
+});
