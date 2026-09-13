@@ -449,61 +449,98 @@
         </a>
     </nav>
 
-    <!-- MEDIA DETAIL MODAL -->
-    <div id="mediaModal" class="modal-backdrop">
-        <div class="modal-container">
-            <button id="modalCloseBtn" class="modal-close">&times;</button>
-
-            <div class="modal-left">
-                <img id="modalPoster" src="" alt="Poster">
-            </div>
-
-            <div class="modal-right">
-                <span id="modalSubheading" class="modal-subheading">MOVIE · 2024</span>
-                <h2 id="modalTitle">Media Title</h2>
-                
-                <div class="modal-meta-row">
-                    <span><i class="fa-solid fa-star" style="color: #fbbf24;"></i> <span id="modalRating">8.0</span></span>
-                    <span id="modalRuntime">2h 10m</span>
-                    <span id="modalGenres">Sci-Fi · Thriller</span>
+    <!-- MEDIA DETAIL / EDIT ENTRY MODAL -->
+<div id="mediaModal" class="modal-backdrop">
+    <div class="modal-container entry-modal">
+        <button id="modalCloseBtn" class="modal-close">&times;</button>
+        
+        <!-- Banner & Floating Poster Header -->
+        <div class="modal-header-banner" id="modalBanner">
+            <div class="banner-overlay"></div>
+            <div class="modal-header-content">
+                <img id="modalPoster" src="" alt="Poster" class="modal-poster-thumb">
+                <div class="modal-title-area">
+                    <h2 id="modalTitle">Media Title</h2>
+                    <span id="modalSubheading" class="modal-subheading">MOVIE · 2024</span>
                 </div>
-
-                <p id="modalOverview">Detailed overview and summary of the selected movie or show will display here.</p>
-
-                <div class="modal-section">
-                    <label class="modal-label">STATUS</label>
-                    <div class="status-toggle-group">
-                        <button class="status-btn active">Plan to Watch</button>
-                        <button class="status-btn">Watching</button>
-                        <button class="status-btn">Completed</button>
-                    </div>
+                <div class="modal-header-actions">
+                    <button type="button" id="modalFavoriteBtn" class="btn-icon-fav" title="Toggle Favorite">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                    <button type="button" id="modalSaveTopBtn" class="btn btn-primary btn-save-modal">Save</button>
                 </div>
-
-                <div class="modal-section">
-                    <label class="modal-label">YOUR RATING</label>
-                    <div class="rating-picker">
-                        <button class="rate-num">1</button>
-                        <button class="rate-num">2</button>
-                        <button class="rate-num">3</button>
-                        <button class="rate-num">4</button>
-                        <button class="rate-num">5</button>
-                        <button class="rate-num active">6</button>
-                        <button class="rate-num">7</button>
-                        <button class="rate-num">8</button>
-                        <button class="rate-num">9</button>
-                        <button class="rate-num">10</button>
-                    </div>
-                </div>
-
-                <div class="modal-section">
-                    <label class="modal-label">NOTES</label>
-                    <textarea id="modalNote" placeholder="Add personal notes or review..."></textarea>
-                </div>
-
-                <button class="btn-save-library">Save to Library</button>
             </div>
         </div>
+
+        <!-- Form Fields Grid -->
+        <div class="modal-body-form">
+            <form id="mediaEntryForm" class="entry-form-grid">
+                <div class="form-main-fields">
+                    <!-- Row 1: Status, Score, Episode Progress -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="modal-label">Status</label>
+                            <select id="entryStatus" class="modal-input-select">
+                                <option value="Watching">Watching</option>
+                                <option value="Plan to Watch" selected>Plan to Watch</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Paused">Paused</option>
+                                <option value="Dropped">Dropped</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="modal-label">Score (0-10)</label>
+                            <input type="number" id="entryScore" class="modal-input" min="0" max="10" step="0.5" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label class="modal-label">Episode Progress</label>
+                            <input type="number" id="entryProgress" class="modal-input" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Start Date, Finish Date, Rewatches -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="modal-label">Start Date</label>
+                            <input type="date" id="entryStartDate" class="modal-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="modal-label">Finish Date</label>
+                            <input type="date" id="entryFinishDate" class="modal-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="modal-label">Total Rewatches</label>
+                            <input type="number" id="entryRewatches" class="modal-input" min="0" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Notes -->
+                    <div class="form-group full-width">
+                        <label class="modal-label">Notes</label>
+                        <textarea id="entryNotes" class="modal-textarea" placeholder="Add personal notes or review..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Side Options -->
+                <div class="form-side-fields">
+                    <div class="form-group">
+                        <label class="modal-label">Custom Lists</label>
+                        <p class="muted-text">No custom lists</p>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="entryPrivate">
+                            <span>Private Entry</span>
+                        </label>
+                    </div>
+                    <div class="form-actions-bottom">
+                        <button type="button" id="entryDeleteBtn" class="btn-delete-entry">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
     <!-- AUTHENTICATION MODAL -->
     <div id="authModal" class="modal-backdrop">

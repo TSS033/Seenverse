@@ -9,54 +9,25 @@ const API_CONFIG = {
 const SUPABASE_URL = 'https://ijqaftsyaxbqwgprkwxs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqcWFmdHN5YXhicXdncHJrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTYzODIsImV4cCI6MjEwNDg5MjM4Mn0.spPD3I8aZZAQeIcYr7ej4V3H94P1A_eFjcuS2VLIqog';
 
-// Initialize Supabase Client safely with a distinct variable name
+// Initialize Supabase Client safely
 const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient) 
     ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
     : null;
 
 // Mixed Dataset (Movies & TV Shows Fallback)
 const FALLBACK_MEDIA = [
-    {
-        title: 'Blade Runner 2049',
-        release_date: '2017-10-06',
-        vote_average: 8.7,
-        type: 'Movie',
-        poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop',
-        overview: 'A young Blade Runner\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.',
-        genres: 'Sci-Fi · Drama'
-    },
-    {
-        title: 'Cyberpunk: Edgerunners',
-        release_date: '2022-09-13',
-        vote_average: 8.3,
-        type: 'TV Show',
-        poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop',
-        overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.',
-        genres: 'Anime · Sci-Fi'
-    },
-    {
-        title: 'Dune: Part Two',
-        release_date: '2024-03-01',
-        vote_average: 8.5,
-        type: 'Movie',
-        poster_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop',
-        overview: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.',
-        genres: 'Sci-Fi · Adventure'
-    },
-    {
-        title: 'Stranger Things',
-        release_date: '2016-07-15',
-        vote_average: 8.6,
-        type: 'TV Show',
-        poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop',
-        overview: 'When a young boy vanishes, a small town uncovers a mystery involving secret experiments and terrifying supernatural forces.',
-        genres: 'Sci-Fi · Horror'
-    }
+    { id: '101', title: 'Blade Runner 2049', release_date: '2017-10-06', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop', overview: 'A young Blade Runner\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.', genres: 'Sci-Fi · Drama' },
+    { id: '102', title: 'Cyberpunk: Edgerunners', release_date: '2022-09-13', vote_average: 8.3, type: 'TV Show', poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop', overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.', genres: 'Anime · Sci-Fi' },
+    { id: '103', title: 'Dune: Part Two', release_date: '2024-03-01', vote_average: 8.5, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop', overview: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.', genres: 'Sci-Fi · Adventure' },
+    { id: '104', title: 'The Matrix', release_date: '1999-03-31', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop', overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.', genres: 'Sci-Fi · Action' }
 ];
 
+// --- STATE MANAGEMENT ---
 let activeFilter = 'all';
 let currentUser = null;
 let isSignUpMode = false;
+let userEntries = {}; 
+let activeMediaData = null;
 
 // --- HELPER FUNCTIONS ---
 function escapeHtml(str) {
@@ -84,6 +55,83 @@ function updateProfileUI(user) {
     } else {
         if (usernameEl) usernameEl.textContent = 'Guest User';
         if (profileAvatarLg) profileAvatarLg.textContent = 'JS';
+    }
+}
+
+// --- PROFILE RECALCULATION & LIVE STATS ---
+function updateProfileStats() {
+    const entries = Object.values(userEntries);
+    
+    // Total & Status Counts
+    const totalMedia = entries.length;
+    const completedMovies = entries.filter(e => e.type === 'Movie' && e.status === 'Completed').length;
+    const tvTracked = entries.filter(e => e.type === 'TV Show' && e.status !== 'Dropped').length;
+    
+    // Days Watched (estimated hours converted to days)
+    const totalHours = entries.reduce((acc, curr) => {
+        const count = Number(curr.progress) || (curr.type === 'Movie' ? 1 : 10);
+        return acc + (count * 2); 
+    }, 0);
+    const daysWatched = (totalHours / 24).toFixed(1);
+
+    // Mean Score
+    const scoredEntries = entries.filter(e => Number(e.score) > 0);
+    const meanScore = scoredEntries.length > 0 
+        ? (scoredEntries.reduce((acc, curr) => acc + Number(curr.score), 0) / scoredEntries.length).toFixed(1)
+        : '0.0';
+
+    // Update Profile Stat Boxes
+    const statNums = document.querySelectorAll('.profile-stat-box .stat-num');
+    if (statNums.length >= 3) {
+        statNums[0].textContent = totalMedia;
+        statNums[1].textContent = daysWatched;
+        statNums[2].textContent = meanScore;
+    }
+
+    // Update Progress Bars
+    const progressGroup = document.querySelectorAll('.stat-progress-group');
+    if (progressGroup.length >= 2) {
+        progressGroup[0].querySelector('.progress-info span:last-child').textContent = `${completedMovies} Completed`;
+        progressGroup[0].querySelector('.progress-bar-fill').style.width = `${Math.min(100, (completedMovies / 10) * 100)}%`;
+
+        progressGroup[1].querySelector('.progress-info span:last-child').textContent = `${tvTracked} Tracked`;
+        progressGroup[1].querySelector('.progress-bar-fill').style.width = `${Math.min(100, (tvTracked / 10) * 100)}%`;
+    }
+
+    // Genre Breakdown Calculations
+    const genreCounts = {};
+    entries.forEach(item => {
+        if (item.genres) {
+            item.genres.split('·').forEach(g => {
+                const genre = g.trim();
+                genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+            });
+        }
+    });
+
+    const genreChipsRow = document.querySelector('.genre-chips-row');
+    if (genreChipsRow && Object.keys(genreCounts).length > 0) {
+        genreChipsRow.innerHTML = Object.entries(genreCounts).map(([genre, count]) => `
+            <div class="genre-chip">
+                <span class="chip-label">${escapeHtml(genre)}</span>
+                <span class="chip-count">${count} Entries</span>
+            </div>
+        `).join('');
+    }
+
+    // Favorite Media Grid Update
+    const favGrid = document.querySelector('.profile-media-mini-grid');
+    const favorites = entries.filter(e => e.isFavorite);
+    if (favGrid && favorites.length > 0) {
+        favGrid.innerHTML = favorites.map(item => `
+            <div class="movie-card">
+                <div class="poster-wrapper">
+                    <img src="${item.poster_path}" alt="${escapeHtml(item.title)}">
+                    <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.score || '8.0'}</div>
+                </div>
+                <div class="movie-title">${escapeHtml(item.title)}</div>
+            </div>
+        `).join('');
     }
 }
 
@@ -120,7 +168,66 @@ async function signOut() {
     else alert('Signed out successfully.');
 }
 
-// --- WATCHLIST DATABASE OPERATIONS ---
+// --- WATCHLIST & ENTRY DATABASE OPERATIONS ---
+async function saveMediaEntry() {
+    if (!activeMediaData) return;
+
+    const favBtn = document.getElementById('modalFavoriteBtn');
+    const entry = {
+        id: String(activeMediaData.id || activeMediaData.title),
+        media_id: String(activeMediaData.id || activeMediaData.title),
+        title: activeMediaData.title,
+        type: activeMediaData.type,
+        poster_path: activeMediaData.poster_path || activeMediaData.posterUrl,
+        genres: activeMediaData.genres || 'Sci-Fi',
+        status: document.getElementById('entryStatus')?.value || 'Plan to Watch',
+        score: document.getElementById('entryScore')?.value || 0,
+        progress: document.getElementById('entryProgress')?.value || 0,
+        startDate: document.getElementById('entryStartDate')?.value || '',
+        finishDate: document.getElementById('entryFinishDate')?.value || '',
+        rewatches: document.getElementById('entryRewatches')?.value || 0,
+        notes: document.getElementById('entryNotes')?.value || '',
+        isPrivate: document.getElementById('entryPrivate')?.checked || false,
+        isFavorite: favBtn ? favBtn.classList.contains('active') : false
+    };
+
+    userEntries[entry.id] = entry;
+
+    if (supabaseClient && currentUser) {
+        const { error } = await supabaseClient.from('watchlists').upsert([
+            {
+                user_id: currentUser.id,
+                media_id: entry.media_id,
+                title: entry.title,
+                poster_path: entry.poster_path,
+                media_type: entry.type,
+                rating: Number(entry.score) || null,
+                status: entry.status,
+                notes: entry.notes
+            }
+        ]);
+        if (error) console.error('Supabase Save Error:', error.message);
+    }
+
+    updateProfileStats();
+    closeMediaModal();
+    alert(`Saved "${entry.title}" to your library!`);
+}
+
+async function deleteMediaEntry() {
+    if (!activeMediaData) return;
+    const id = String(activeMediaData.id || activeMediaData.title);
+
+    delete userEntries[id];
+
+    if (supabaseClient && currentUser) {
+        await supabaseClient.from('watchlists').delete().eq('user_id', currentUser.id).eq('media_id', id);
+    }
+
+    updateProfileStats();
+    closeMediaModal();
+}
+
 async function addToWatchlist(item) {
     if (!supabaseClient) return;
     if (!currentUser) return alert('Please log in to save items!');
@@ -150,8 +257,22 @@ async function fetchUserWatchlist(userId) {
         .select('*')
         .eq('user_id', userId);
 
-    if (error) console.error('Error fetching watchlist:', error.message);
-    else console.log('User Watchlist:', data);
+    if (error) {
+        console.error('Error fetching watchlist:', error.message);
+    } else if (data) {
+        data.forEach(item => {
+            userEntries[item.media_id] = {
+                id: item.media_id,
+                title: item.title,
+                type: item.media_type,
+                poster_path: item.poster_path,
+                score: item.rating || 0,
+                status: item.status || 'Completed',
+                notes: item.notes || ''
+            };
+        });
+        updateProfileStats();
+    }
 }
 
 // --- API FETCH & RENDER MEDIA ---
@@ -162,15 +283,7 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
     let mediaList = [];
 
     try {
-        let endpoint = '';
-        if (filterCategory === 'Movie') {
-            endpoint = `${API_CONFIG.BASE_URL}/trending/movie/week?api_key=${API_CONFIG.KEY}`;
-        } else if (filterCategory === 'TV Show') {
-            endpoint = `${API_CONFIG.BASE_URL}/trending/tv/week?api_key=${API_CONFIG.KEY}`;
-        } else {
-            endpoint = `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`;
-        }
-
+        let endpoint = `${API_CONFIG.BASE_URL}/trending/${filterCategory === 'Movie' ? 'movie' : filterCategory === 'TV Show' ? 'tv' : 'all'}/week?api_key=${API_CONFIG.KEY}`;
         const response = await fetch(endpoint);
         const data = await response.json();
 
@@ -178,7 +291,7 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
             mediaList = data.results.map(item => {
                 const isMovie = (item.media_type === 'movie') || Boolean(item.title);
                 return {
-                    id: item.id,
+                    id: String(item.id),
                     title: isMovie ? item.title : item.name,
                     release_date: isMovie ? item.release_date : item.first_air_date,
                     vote_average: item.vote_average,
@@ -201,19 +314,18 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
 
     gridContainer.innerHTML = mediaList.map(item => {
         const titleEscaped = escapeHtml(item.title);
-        const overviewEscaped = escapeHtml(item.overview);
         const yearFormatted = item.release_date ? item.release_date.split('-')[0] : 'N/A';
         const ratingFormatted = item.vote_average ? Number(item.vote_average).toFixed(1) : '8.0';
 
         return `
             <div class="movie-card" 
-                 data-id="${item.id || ''}"
+                 data-id="${item.id}"
                  data-title="${titleEscaped}" 
                  data-year="${yearFormatted}"
                  data-type="${item.type}"
                  data-rating="${ratingFormatted}"
-                 data-overview="${overviewEscaped}"
-                 data-genres="${escapeHtml(item.genres || 'Sci-Fi')}">
+                 data-overview="${escapeHtml(item.overview)}"
+                 data-genres="${escapeHtml(item.genres)}">
                 <div class="poster-wrapper">
                     <img src="${item.poster_path}" alt="${titleEscaped}" loading="lazy">
                     <div class="rating-badge"><i class="fa-solid fa-star"></i> ${ratingFormatted}</div>
@@ -326,16 +438,45 @@ function initSocialData() {
 
 // --- MODAL CONTROLLERS ---
 function openMediaModal(data) {
+    activeMediaData = data;
     const modal = document.getElementById('mediaModal');
     if (!modal) return;
 
-    document.getElementById('modalPoster').src = data.posterUrl || '';
-    document.getElementById('modalTitle').textContent = data.title || 'Untitled';
-    document.getElementById('modalSubheading').textContent = `${data.type || 'Media'} · ${data.year || 'N/A'}`;
-    document.getElementById('modalOverview').textContent = data.overview || 'No description available.';
-    document.getElementById('modalRating').textContent = data.rating || 'N/A';
-    document.getElementById('modalRuntime').textContent = data.runtime || '2h 10m';
-    document.getElementById('modalGenres').textContent = data.genres || 'Sci-Fi';
+    const id = String(data.id || data.title);
+    const existing = userEntries[id] || {};
+
+    const posterSrc = data.poster_path || data.posterUrl || '';
+    const posterImg = document.getElementById('modalPoster');
+    if (posterImg) posterImg.src = posterSrc;
+
+    const titleEl = document.getElementById('modalTitle');
+    if (titleEl) titleEl.textContent = data.title || 'Untitled';
+
+    const subEl = document.getElementById('modalSubheading');
+    if (subEl) subEl.textContent = `${data.type || 'Media'} · ${data.year || '2024'}`;
+
+    const banner = document.getElementById('modalBanner');
+    if (banner && posterSrc) {
+        banner.style.backgroundImage = `url('${posterSrc}')`;
+    }
+
+    // Populate Fields from Existing Entry or Defaults
+    if (document.getElementById('entryStatus')) document.getElementById('entryStatus').value = existing.status || 'Plan to Watch';
+    if (document.getElementById('entryScore')) document.getElementById('entryScore').value = existing.score || 0;
+    if (document.getElementById('entryProgress')) document.getElementById('entryProgress').value = existing.progress || 0;
+    if (document.getElementById('entryStartDate')) document.getElementById('entryStartDate').value = existing.startDate || '';
+    if (document.getElementById('entryFinishDate')) document.getElementById('entryFinishDate').value = existing.finishDate || '';
+    if (document.getElementById('entryRewatches')) document.getElementById('entryRewatches').value = existing.rewatches || 0;
+    if (document.getElementById('entryNotes')) document.getElementById('entryNotes').value = existing.notes || '';
+    if (document.getElementById('entryPrivate')) document.getElementById('entryPrivate').checked = Boolean(existing.isPrivate);
+
+    const favBtn = document.getElementById('modalFavoriteBtn');
+    if (favBtn) {
+        const isFav = Boolean(existing.isFavorite);
+        favBtn.classList.toggle('active', isFav);
+        const icon = favBtn.querySelector('i');
+        if (icon) icon.className = isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+    }
 
     modal.classList.add('active');
 }
@@ -347,7 +488,6 @@ function closeMediaModal() {
 
 // --- MAIN INITIALIZATION ---
 document.addEventListener("DOMContentLoaded", () => {
-
     const avatarEl = document.querySelector('.avatar');
     const profileDropdown = document.getElementById('profileDropdown');
     const authModal = document.getElementById('authModal');
@@ -358,7 +498,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const authToggleText = document.getElementById('authToggleText');
     const usernameGroup = document.getElementById('usernameGroup');
 
-    // 1. Listen for Supabase Authentication State Changes
+    // Modal Form Buttons
+    document.getElementById('modalSaveTopBtn')?.addEventListener('click', saveMediaEntry);
+    document.getElementById('entryDeleteBtn')?.addEventListener('click', deleteMediaEntry);
+    
+    document.getElementById('modalFavoriteBtn')?.addEventListener('click', function() {
+        this.classList.toggle('active');
+        const icon = this.querySelector('i');
+        if (icon) icon.className = this.classList.contains('active') ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+    });
+
+    // 1. Supabase Auth State Change Listener
     if (supabaseClient) {
         supabaseClient.auth.onAuthStateChange((event, session) => {
             currentUser = session ? session.user : null;
@@ -376,7 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 2. Auth & Profile Dropdown Control
+    // 2. Auth & Dropdown Controls
     if (avatarEl) {
         avatarEl.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -388,7 +538,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Dropdown Item Action Listeners
     document.getElementById('dropdownLogout')?.addEventListener('click', (e) => {
         e.preventDefault();
         if (profileDropdown) profileDropdown.classList.remove('active');
@@ -481,7 +630,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Global Event Delegation
     document.addEventListener('click', (e) => {
-        // Profile Sub-tab Navigation
+        // Profile Sub-tab Switcher
         const profileTab = e.target.closest('.profile-tab');
         if (profileTab) {
             e.preventDefault();
@@ -495,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
             profileDropdown.classList.remove('active');
         }
 
-        // Modal Close (Media or Auth)
+        // Close Modals
         if (e.target.closest('#modalCloseBtn') || e.target.id === 'mediaModal') {
             closeMediaModal();
             return;
@@ -506,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Category Filter Tabs Inside Home Section
+        // Category Filter Tabs
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
             const filter = filterBtn.getAttribute('data-filter') || 'all';
@@ -546,7 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Watchlist + Button (Add to Supabase Database)
+        // Watchlist + Button (Direct Add)
         const actionCircle = e.target.closest('.action-circle');
         if (actionCircle) {
             e.stopPropagation();
@@ -567,32 +716,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Modal Controls
-        const statusBtn = e.target.closest('.status-btn');
-        if (statusBtn) {
-            document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-            statusBtn.classList.add('active');
-            return;
-        }
-
-        const rateBtn = e.target.closest('.rate-num');
-        if (rateBtn) {
-            document.querySelectorAll('.rate-num').forEach(b => b.classList.remove('active'));
-            rateBtn.classList.add('active');
-            return;
-        }
-
-        // Card Click -> Open Modal
+        // Open Detail Modal on Card Click
         const card = e.target.closest('.movie-card, .media-card');
         if (card) {
             openMediaModal({
+                id: card.dataset.id || card.dataset.title,
                 title: card.dataset.title || card.querySelector('.movie-title, h4')?.textContent || 'Title',
                 year: card.dataset.year || '2024',
                 type: card.dataset.type || 'Movie',
                 rating: card.dataset.rating || '8.0',
                 overview: card.dataset.overview || 'Overview details...',
                 genres: card.dataset.genres || 'Sci-Fi',
-                posterUrl: card.querySelector('img')?.src || ''
+                poster_path: card.querySelector('img')?.src || ''
             });
         }
     });
