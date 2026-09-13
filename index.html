@@ -32,7 +32,7 @@
 
     <main>
         <!-- HOME VIEW -->
-        <section id="home-view" class="view-section">
+        <section id="home-view" class="view-section active">
             <div class="hero">
                 <span class="hero-tag">Discover</span>
                 <h1>The Last <span>Horizon</span></h1>
@@ -50,33 +50,20 @@
         </section>
 
         <!-- MOVIES VIEW -->
-        <section id="movies-view" class="view-section" style="display: none;">
+        <section id="movies-view" class="view-section">
             <div class="section-header">
                 <div>
                     <h2>Movies</h2>
                     <p>Find your next unforgettable story.</p>
                 </div>
             </div>
-            <div class="movie-grid">
-                <div class="movie-card">
-                    <div class="poster-wrapper">
-                        <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop" alt="Neon Divide">
-                        <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.4</div>
-                        <div class="status-badge">Completed</div>
-                    </div>
-                    <div class="movie-info">
-                        <div>
-                            <div class="movie-title">Neon Divide</div>
-                            <div class="movie-meta">2024 · Movie</div>
-                        </div>
-                        <div class="action-circle"><i class="fa-solid fa-check"></i></div>
-                    </div>
-                </div>
+            <div id="madeForYouGrid" class="movie-grid">
+                <!-- Dynamic API movies will be injected here -->
             </div>
         </section>
 
         <!-- TV SHOWS VIEW -->
-        <section id="tv-view" class="view-section" style="display: none;">
+        <section id="tv-view" class="view-section">
             <div class="section-header">
                 <div>
                     <h2>TV Shows</h2>
@@ -102,7 +89,7 @@
         </section>
 
         <!-- SOCIAL VIEW -->
-        <section id="social-view" class="view-section" style="display: none;">
+        <section id="social-view" class="view-section">
             <div class="section-header">
                 <div>
                     <h2>Social</h2>
@@ -110,7 +97,7 @@
                 </div>
             </div>
             <div class="social-feed">
-                <div class="stat-card" style="margin-bottom: 1rem;">
+                <div class="stat-card social-card-custom">
                     <h3>Maya Chen</h3>
                     <p>rated Neon Divide ⭐ 9/10</p>
                 </div>
@@ -126,7 +113,6 @@
         <a href="#" data-target="social-view" class="mobile-nav-link"><i class="fa-solid fa-users"></i><span>Social</span></a>
     </div>
 
-    <!-- External Script Integration -->
     <script src="app.js" defer></script>
 </body>
 </html>

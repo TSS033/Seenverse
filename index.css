@@ -27,6 +27,19 @@ body {
     margin: 0 auto;
 }
 
+/* --- View Sections & Custom Utilities --- */
+.view-section {
+    display: none;
+}
+
+.view-section.active {
+    display: block;
+}
+
+.social-card-custom {
+    margin-bottom: 1rem;
+}
+
 /* --- Site Header Wrapper --- */
 .site-header {
     margin-bottom: 2rem;
