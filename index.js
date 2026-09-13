@@ -1,13 +1,9 @@
 const API_CONFIG = {
-    // PASTE YOUR API KEY HERE:
     KEY: 'YOUR_API_KEY_HERE', 
-    
-    // Base URL for fetching trending or recommended movies
     BASE_URL: 'https://api.themoviedb.org/3',
     IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
 };
 
-// Fetch data from the API and render it
 async function fetchAndRenderMovies() {
     if (API_CONFIG.KEY === 'YOUR_API_KEY_HERE') {
         console.log("No API Key detected. Displaying hardcoded fallback items.");
@@ -19,7 +15,8 @@ async function fetchAndRenderMovies() {
         const data = await response.json();
 
         const gridContainer = document.getElementById('madeForYouGrid');
-        gridContainer.innerHTML = ''; // Clear hardcoded items
+        if (!gridContainer) return;
+        gridContainer.innerHTML = ''; 
 
         const moviesToRender = data.results.slice(0, 6);
 
@@ -28,15 +25,15 @@ async function fetchAndRenderMovies() {
                 <div class="movie-card">
                     <div class="poster-wrapper">
                         <img src="${API_CONFIG.IMAGE_BASE}${movie.poster_path}" alt="${movie.title}">
-                        <div class="rating-badge">★ ${movie.vote_average.toFixed(1)}</div>
+                        <div class="rating-badge"><i class="fa-solid fa-star"></i> ${movie.vote_average.toFixed(1)}</div>
                         <div class="status-badge">PLAN TO WATCH</div>
                     </div>
                     <div class="movie-info">
                         <div>
                             <div class="movie-title">${movie.title}</div>
-                            <div class="movie-meta">${movie.release_date.split('-')[0]} · Movie</div>
+                            <div class="movie-meta">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'} · Movie</div>
                         </div>
-                        <div class="action-circle">+</div>
+                        <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
                     </div>
                 </div>
             `;
@@ -47,5 +44,30 @@ async function fetchAndRenderMovies() {
     }
 }
 
-// Initialize the fetch when the page loads
-document.addEventListener('DOMContentLoaded', fetchAndRenderMovies);
+document.addEventListener("DOMContentLoaded", () => {
+    const links = document.querySelectorAll(".nav-links a, .mobile-nav-link");
+    const views = document.querySelectorAll(".view-section");
+
+    links.forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute("data-target");
+
+            views.forEach(view => view.style.display = "none");
+            const targetView = document.getElementById(targetId);
+            if (targetView) targetView.style.display = "block";
+
+            links.forEach(l => {
+                if (l.getAttribute("data-target") === targetId) {
+                    l.classList.add("active");
+                } else {
+                    l.classList.remove("active");
+                }
+            });
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+
+    fetchAndRenderMovies();
+});
