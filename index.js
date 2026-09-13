@@ -228,21 +228,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const views = document.querySelectorAll(".view-section");
 
     function switchView(targetId, filter = 'all') {
+        // Toggle Active Sections
         views.forEach(view => view.classList.remove("active"));
         const targetView = document.getElementById(targetId);
         if (targetView) targetView.classList.add("active");
 
+        // Strict Nav Highlight Matching
         navLinks.forEach(l => {
             const matchesTarget = l.getAttribute("data-target") === targetId;
-            const matchesFilter = !l.hasAttribute("data-filter") || l.getAttribute("data-filter") === filter;
-            l.classList.toggle("active", matchesTarget && matchesFilter);
+            const linkFilter = l.getAttribute("data-filter") || 'all';
+
+            // Only mark active if view target matches AND filter matches (for homeView sub-navigation)
+            const isMatch = matchesTarget && (targetId !== 'homeView' || linkFilter === filter);
+            l.classList.toggle("active", isMatch);
         });
 
+        // Handle Home view rendering and inner tabs sync
         if (targetId === 'homeView') {
             activeFilter = filter;
             fetchAndRenderMovies(filter);
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+                const btnFilter = btn.getAttribute('data-filter') || 'all';
+                btn.classList.toggle('active', btnFilter === filter);
             });
         }
 
@@ -266,11 +273,19 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Category Filter Tabs
+        // Category Filter Tabs Inside Home Section
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
-            const filter = filterBtn.getAttribute('data-filter');
+            const filter = filterBtn.getAttribute('data-filter') || 'all';
             activeFilter = filter;
+            
+            // Sync Top Nav Highlighting when clicking in-page filter buttons
+            navLinks.forEach(l => {
+                const matchesTarget = l.getAttribute("data-target") === 'homeView';
+                const linkFilter = l.getAttribute("data-filter") || 'all';
+                l.classList.toggle("active", matchesTarget && linkFilter === filter);
+            });
+
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             filterBtn.classList.add('active');
             fetchAndRenderMovies(filter);
