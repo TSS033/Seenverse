@@ -705,6 +705,7 @@ nav {
 }
 
 /* --- Modal Backdrop & Container --- */
+./* MODAL BACKDROP FIX */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -714,12 +715,18 @@ nav {
     background: rgba(0, 0, 0, 0.85); 
     -webkit-backdrop-filter: blur(8px); 
     backdrop-filter: blur(8px);
-    display: none;
+    display: none; /* Properly hides the overlay by default */
     align-items: center;
     justify-content: center;
     z-index: 10000;
     opacity: 0;
     transition: opacity 0.25s ease;
+}
+
+/* SHOW MODAL WHEN ACTIVE */
+.modal-backdrop.active {
+    display: flex;
+    opacity: 1;
 }
 
 .modal-backdrop.active {
