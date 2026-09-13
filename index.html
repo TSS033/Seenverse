@@ -6,6 +6,7 @@
     <title>Seenverse</title>
     <link rel="stylesheet" href="index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="index.js" defer></script>
 </head>
 <body>
 
@@ -52,7 +53,7 @@
             <!-- Stats Row -->
             <div class="stats-row" style="margin-top: 2rem;">
                 <div class="stat-card">
-                    <i class="fa-solid fa-film" style="font-size: 1.5rem; color: var(--accent-color);"></i>
+                    <i class="fa-solid fa-film" style="font-size: 1.5rem; color: var(--accent-color, #e06d53);"></i>
                     <div>
                         <h3>142</h3>
                         <p>Movies Watched</p>
@@ -123,7 +124,6 @@
                 </div>
             </div>
             <div id="madeForYouGrid" class="movie-grid">
-                <!-- Dynamic API movies or fallback content -->
                 <div class="movie-card">
                     <div class="poster-wrapper">
                         <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600&auto=format&fit=crop" alt="Cyberpunk 2099">
@@ -167,84 +167,84 @@
             </div>
         </section>
 
-<!-- SOCIAL VIEW -->
-<section id="social-view" class="view-section">
-    <div class="section-header">
-        <div>
-            <span class="hero-tag">YOUR CIRCLE</span>
-            <h2>Social</h2>
-            <p>See what your friends are watching and loving.</p>
-        </div>
-    </div>
-
-    <div class="social-layout">
-        <!-- Dynamic Feed Container -->
-        <div id="socialFeed" class="social-feed">
-            <!-- Dynamic posts will render here -->
-        </div>
-
-        <!-- Sidebar: Dynamic Suggested Users -->
-        <aside class="social-sidebar">
-            <div class="sidebar-card">
-                <h3>People to follow</h3>
-                <ul id="followList" class="follow-list">
-                    <!-- Dynamic users will render here -->
-                </ul>
-            </div>
-        </aside>
-    </div>
-</section>
-<!-- MOVIE / SHOW DETAIL MODAL -->
-<div id="mediaModal" class="modal-backdrop">
-    <div class="modal-container">
-        <button class="modal-close" id="modalCloseBtn">&times;</button>
-        <div class="modal-left">
-            <img id="modalPoster" src="" alt="Poster">
-        </div>
-        <div class="modal-right">
-            <span id="modalMetaTop" class="modal-subheading">Movie · 2024</span>
-            <h2 id="modalTitle">Title</h2>
-            <p id="modalOverview">Description goes here.</p>
-            
-            <div class="modal-meta-row">
-                <span><i class="fa-solid fa-star" style="color: #f59e0b;"></i> <strong id="modalRating">8.4</strong></span>
-                <span id="modalRuntime">1h 56m</span>
-                <span id="modalGenres">Thriller · Mystery</span>
-            </div>
-
-            <div class="modal-section">
-                <label class="modal-label">LIST STATUS</label>
-                <div class="status-toggle-group">
-                    <button class="status-btn" data-status="Watching">Watching</button>
-                    <button class="status-btn active" data-status="Completed">Completed</button>
-                    <button class="status-btn" data-status="Plan to watch">Plan to watch</button>
+        <!-- SOCIAL VIEW -->
+        <section id="social-view" class="view-section">
+            <div class="section-header">
+                <div>
+                    <span class="hero-tag">YOUR CIRCLE</span>
+                    <h2>Social</h2>
+                    <p>See what your friends are watching and loving.</p>
                 </div>
             </div>
 
-            <div class="modal-section">
-                <label class="modal-label">YOUR RATING</label>
-                <div class="rating-picker" id="modalRatingPicker">
-                    <button class="rate-num">1</button>
-                    <button class="rate-num">2</button>
-                    <button class="rate-num">3</button>
-                    <button class="rate-num">4</button>
-                    <button class="rate-num">5</button>
-                    <button class="rate-num">6</button>
-                    <button class="rate-num">7</button>
-                    <button class="rate-num active">8</button>
-                    <button class="rate-num">9</button>
-                    <button class="rate-num">10</button>
+            <div class="social-layout">
+                <div id="socialFeed" class="social-feed">
+                    <!-- Dynamic posts will render here -->
                 </div>
-            </div>
 
-            <div class="modal-section">
-                <label class="modal-label">YOUR NOTE</label>
-                <textarea id="modalNote" placeholder="Write your thoughts..."></textarea>
+                <aside class="social-sidebar">
+                    <div class="sidebar-card">
+                        <h3>People to follow</h3>
+                        <ul id="followList" class="follow-list">
+                            <!-- Dynamic users will render here -->
+                        </ul>
+                    </div>
+                </aside>
             </div>
+        </section>
+    </main>
 
-            <button class="btn-save-library" id="saveLibraryBtn">Save to my library</button>
+    <!-- MOVIE / SHOW DETAIL MODAL -->
+    <div id="mediaModal" class="modal-backdrop">
+        <div class="modal-container">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div class="modal-left">
+                <img id="modalPoster" src="" alt="Poster">
+            </div>
+            <div class="modal-right">
+                <span id="modalMetaTop" class="modal-subheading">Movie · 2024</span>
+                <h2 id="modalTitle">Title</h2>
+                <p id="modalOverview">Description goes here.</p>
+                
+                <div class="modal-meta-row">
+                    <span><i class="fa-solid fa-star" style="color: #f59e0b;"></i> <strong id="modalRating">8.4</strong></span>
+                    <span id="modalRuntime">1h 56m</span>
+                    <span id="modalGenres">Thriller · Mystery</span>
+                </div>
+
+                <div class="modal-section">
+                    <label class="modal-label">LIST STATUS</label>
+                    <div class="status-toggle-group">
+                        <button class="status-btn" data-status="Watching">Watching</button>
+                        <button class="status-btn active" data-status="Completed">Completed</button>
+                        <button class="status-btn" data-status="Plan to watch">Plan to watch</button>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <label class="modal-label">YOUR RATING</label>
+                    <div class="rating-picker" id="modalRatingPicker">
+                        <button class="rate-num">1</button>
+                        <button class="rate-num">2</button>
+                        <button class="rate-num">3</button>
+                        <button class="rate-num">4</button>
+                        <button class="rate-num">5</button>
+                        <button class="rate-num">6</button>
+                        <button class="rate-num">7</button>
+                        <button class="rate-num active">8</button>
+                        <button class="rate-num">9</button>
+                        <button class="rate-num">10</button>
+                    </div>
+                </div>
+
+                <div class="modal-section">
+                    <label class="modal-label">YOUR NOTE</label>
+                    <textarea id="modalNote" placeholder="Write your thoughts..."></textarea>
+                </div>
+
+                <button class="btn-save-library" id="saveLibraryBtn">Save to my library</button>
+            </div>
         </div>
     </div>
-</div>
 </body>
 </html>

@@ -1,9 +1,16 @@
+// --- CONFIGURATION ---
 const API_CONFIG = {
     KEY: 'YOUR_API_KEY_HERE', 
     BASE_URL: 'https://api.themoviedb.org/3',
     IMAGE_BASE: 'https://image.tmdb.org/t/p/w500'
 };
 
+// --- HELPER FUNCTIONS ---
+function getInitials(name) {
+    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
+}
+
+// --- API FETCH & RENDER MOVIES ---
 async function fetchAndRenderMovies() {
     if (API_CONFIG.KEY === 'YOUR_API_KEY_HERE') {
         console.log("No API Key detected. Displaying hardcoded fallback items.");
@@ -24,8 +31,8 @@ async function fetchAndRenderMovies() {
             const cardHTML = `
                 <div class="movie-card">
                     <div class="poster-wrapper">
-                        <img src="${API_CONFIG.IMAGE_BASE}${movie.poster_path}" alt="${movie.title}">
-                        <div class="rating-badge"><i class="fa-solid fa-star"></i> ${movie.vote_average.toFixed(1)}</div>
+                        <img src="${movie.poster_path ? API_CONFIG.IMAGE_BASE + movie.poster_path : 'https://via.placeholder.com/500x750'}" alt="${movie.title}">
+                        <div class="rating-badge"><i class="fa-solid fa-star"></i> ${movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A'}</div>
                         <div class="status-badge">PLAN TO WATCH</div>
                     </div>
                     <div class="movie-info">
@@ -44,59 +51,7 @@ async function fetchAndRenderMovies() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const desktopLinks = document.querySelectorAll(".nav-links a");
-    const mobileLinks = document.querySelectorAll(".mobile-nav-link");
-    const views = document.querySelectorAll(".view-section");
-
-    function switchView(targetId) {
-        views.forEach(view => view.classList.remove("active"));
-        const targetView = document.getElementById(targetId);
-        if (targetView) targetView.classList.add("active");
-
-        desktopLinks.forEach(l => {
-            if (l.getAttribute("data-target") === targetId) {
-                l.classList.add("active");
-            } else {
-                l.classList.remove("active");
-            }
-        });
-
-        mobileLinks.forEach(l => {
-            if (l.getAttribute("data-target") === targetId) {
-                l.classList.add("active");
-            } else {
-                l.classList.remove("active");
-            }
-        });
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    desktopLinks.forEach(link => {
-        link.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute("data-target");
-            if (targetId) switchView(targetId);
-        });
-    });
-
-    mobileLinks.forEach(link => {
-        link.addEventListener("click", (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute("data-target");
-            if (targetId) switchView(targetId);
-        });
-    });
-
-    fetchAndRenderMovies();
-});
-// Helper to generate dynamic user avatars with initial letters
-function getInitials(name) {
-    return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
-}
-
-// Render dynamic user activity posts
+// --- SOCIAL FEED & USER SUGGESTIONS ---
 function renderSocialFeed(posts) {
     const feedContainer = document.getElementById('socialFeed');
     if (!feedContainer) return;
@@ -135,7 +90,6 @@ function renderSocialFeed(posts) {
     `).join('');
 }
 
-// Render dynamic "People to Follow" list
 function renderPeopleToFollow(users) {
     const followListContainer = document.getElementById('followList');
     if (!followListContainer) return;
@@ -156,80 +110,145 @@ function renderPeopleToFollow(users) {
     `).join('');
 }
 
-// Example API fetch integration point
-async function fetchSocialData() {
-    try {
-        // Replace endpoint URLs with your backend API paths
-        // const feedResponse = await fetch('/api/social/feed');
-        // const postsData = await feedResponse.json();
-        // renderSocialFeed(postsData);
+// Populates initial social UI if feed containers are present
+function initSocialData() {
+    const samplePosts = [
+        {
+            id: 1,
+            user: { name: 'Elena Rostova', username: 'erostova', avatarColor: '#e06d53' },
+            timestamp: '2h ago',
+            action: 'rated',
+            rating: '9.0',
+            likesCount: 14,
+            commentsCount: 3,
+            media: {
+                title: 'Cyberpunk 2077: Edgerunners',
+                year: '2022',
+                type: 'Anime',
+                posterUrl: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop'
+            }
+        }
+    ];
 
-        // const followResponse = await fetch('/api/social/suggested-users');
-        // const usersData = await followResponse.json();
-        // renderPeopleToFollow(usersData);
-    } catch (error) {
-        console.error("Failed to load social feed data:", error);
-    }
+    const sampleUsers = [
+        { id: 101, name: 'Marcus Chen', mutualsCount: 12, isFollowing: false, avatarColor: '#10b981' },
+        { id: 102, name: 'Sarah Jenkins', mutualsCount: 5, isFollowing: true, avatarColor: '#4f46e5' }
+    ];
+
+    renderSocialFeed(samplePosts);
+    renderPeopleToFollow(sampleUsers);
 }
-// Open Modal with targeted Item Data
+
+// --- MODAL CONTROLLER ---
 function openMediaModal(data) {
     const modal = document.getElementById('mediaModal');
-    
-    document.getElementById('modalPoster').src = data.posterUrl;
-    document.getElementById('modalTitle').textContent = data.title;
-    document.getElementById('modalSubheading').textContent = `${data.type} · ${data.year}`;
-    document.getElementById('modalOverview').textContent = data.overview;
-    document.getElementById('modalRating').textContent = data.rating;
-    document.getElementById('modalRuntime').textContent = data.runtime || '2h 10m';
-    document.getElementById('modalGenres').textContent = data.genres || 'Drama · Sci-Fi';
+    if (!modal) return;
+
+    const posterEl = document.getElementById('modalPoster');
+    const titleEl = document.getElementById('modalTitle');
+    const subheadEl = document.getElementById('modalSubheading');
+    const overviewEl = document.getElementById('modalOverview');
+    const ratingEl = document.getElementById('modalRating');
+    const runtimeEl = document.getElementById('modalRuntime');
+    const genresEl = document.getElementById('modalGenres');
+
+    if (posterEl) posterEl.src = data.posterUrl;
+    if (titleEl) titleEl.textContent = data.title;
+    if (subheadEl) subheadEl.textContent = `${data.type} · ${data.year}`;
+    if (overviewEl) overviewEl.textContent = data.overview;
+    if (ratingEl) ratingEl.textContent = data.rating;
+    if (runtimeEl) runtimeEl.textContent = data.runtime || '2h 10m';
+    if (genresEl) genresEl.textContent = data.genres || 'Drama · Sci-Fi';
 
     modal.classList.add('active');
 }
 
-// Close Modal logic
-document.getElementById('modalCloseBtn')?.addEventListener('click', () => {
-    document.getElementById('mediaModal').classList.remove('active');
-});
+function closeMediaModal() {
+    const modal = document.getElementById('mediaModal');
+    if (modal) modal.classList.remove('active');
+}
 
-document.getElementById('mediaModal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'mediaModal') {
-        document.getElementById('mediaModal').classList.remove('active');
-    }
-});
+// --- MAIN APPLICATION INITIALIZATION ---
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Navigation setup
+    const desktopLinks = document.querySelectorAll(".nav-links a");
+    const mobileLinks = document.querySelectorAll(".mobile-nav-link");
+    const views = document.querySelectorAll(".view-section");
 
-// Delegate click events on media cards across the app
-document.addEventListener('click', (e) => {
-    const card = e.target.closest('.movie-card, .media-card');
-    if (card) {
-        // Collect card details dynamically (or from data attributes)
-        const title = card.querySelector('.movie-title, h4')?.textContent || 'Title';
-        const meta = card.querySelector('.movie-meta, p')?.textContent || '2024 · Movie';
-        const posterUrl = card.querySelector('img')?.src || '';
-        const rating = card.querySelector('.rating-badge')?.textContent?.trim() || '8.0';
+    function switchView(targetId) {
+        views.forEach(view => view.classList.remove("active"));
+        const targetView = document.getElementById(targetId);
+        if (targetView) targetView.classList.add("active");
 
-        openMediaModal({
-            title: title,
-            type: meta.split('·')[1]?.trim() || 'Movie',
-            year: meta.split('·')[0]?.trim() || '2025',
-            posterUrl: posterUrl,
-            rating: rating,
-            overview: 'A detective traces a missing memory through the rain-soaked districts of a divided city.',
-            genres: 'Thriller · Mystery'
+        desktopLinks.forEach(l => {
+            l.classList.toggle("active", l.getAttribute("data-target") === targetId);
         });
+
+        mobileLinks.forEach(l => {
+            l.classList.toggle("active", l.getAttribute("data-target") === targetId);
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-});
 
-// Status and Rating selectors toggle inside modal
-document.querySelectorAll('.status-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
+    [...desktopLinks, ...mobileLinks].forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute("data-target");
+            if (targetId) switchView(targetId);
+        });
     });
-});
 
-document.querySelectorAll('.rate-num').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.rate-num').forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
+    // 2. Modal Interactions & Event Delegation
+    document.getElementById('modalCloseBtn')?.addEventListener('click', closeMediaModal);
+
+    document.getElementById('mediaModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'mediaModal') {
+            closeMediaModal();
+        }
     });
+
+    // Card click delegation for opening modal
+    document.addEventListener('click', (e) => {
+        const card = e.target.closest('.movie-card, .media-card');
+        if (card && !e.target.closest('.action-circle')) {
+            const title = card.querySelector('.movie-title, h4')?.textContent || 'Title';
+            const meta = card.querySelector('.movie-meta, p')?.textContent || '2024 · Movie';
+            const posterUrl = card.querySelector('img')?.src || '';
+            const rating = card.querySelector('.rating-badge')?.textContent?.trim() || '8.0';
+
+            const metaParts = meta.split('·');
+            const year = metaParts[0]?.trim() || '2025';
+            const type = metaParts[1]?.trim() || 'Movie';
+
+            openMediaModal({
+                title: title,
+                type: type,
+                year: year,
+                posterUrl: posterUrl,
+                rating: rating,
+                overview: 'A detective traces a missing memory through the rain-soaked districts of a divided city.',
+                genres: 'Sci-Fi · Cyberpunk'
+            });
+        }
+    });
+
+    // Modal Status & Rating button selectors
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.rate-num').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.rate-num').forEach(b => b.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+        });
+    });
+
+    // 3. Render API Data & Initial Feed State
+    fetchAndRenderMovies();
+    initSocialData();
 });

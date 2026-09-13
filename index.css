@@ -72,7 +72,6 @@ nav {
     color: var(--text-main); 
 }
 
-/* Hidden by default on mobile screens */
 .nav-links {
     display: none;
 }
@@ -361,7 +360,7 @@ nav {
     align-items: center;
     padding: 0.5rem 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    z-index: 9999;
+    z-index: 999;
 }
 
 .mobile-nav-link {
@@ -399,7 +398,6 @@ nav {
     color: var(--text-main);
 }
 
-/* Mobile Nav Defaults */
 .mobile-nav-link {
     color: var(--text-muted) !important;
     text-decoration: none !important;
@@ -411,7 +409,6 @@ nav {
     color: var(--text-muted) !important;
 }
 
-/* Mobile Nav Hover */
 .mobile-nav-link:hover {
     color: var(--text-main) !important;
 }
@@ -421,7 +418,6 @@ nav {
     color: var(--text-main) !important;
 }
 
-/* Mobile Nav Active State */
 .mobile-nav-link.active {
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: var(--text-main) !important;
@@ -476,6 +472,7 @@ nav {
         gap: 1.5rem;
     }
 }
+
 /* SOCIAL PAGE LAYOUT */
 .social-layout {
     display: grid;
@@ -499,7 +496,7 @@ nav {
 }
 
 .feed-card {
-    background-color: var(--card-bg, #12131e);
+    background-color: var(--surface-color, #161a23);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     padding: 1.25rem;
@@ -547,7 +544,7 @@ nav {
 
 .user-handle, .user-sub {
     font-size: 0.8rem;
-    color: var(--text-muted, #94a3b8);
+    color: var(--text-muted, #8b929d);
 }
 
 .more-btn {
@@ -580,6 +577,7 @@ nav {
     gap: 1rem;
     padding: 0.75rem;
     overflow: hidden;
+    cursor: pointer;
 }
 
 .media-card img {
@@ -626,7 +624,7 @@ nav {
 
 /* SIDEBAR: PEOPLE TO FOLLOW */
 .sidebar-card {
-    background-color: var(--card-bg, #12131e);
+    background-color: var(--surface-color, #161a23);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     padding: 1.25rem;
@@ -658,7 +656,7 @@ nav {
     border: none;
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--accent-color, #e06d53);
+    color: var(--accent-color, #ff6b4a);
     cursor: pointer;
     margin-left: auto;
 }
@@ -666,6 +664,7 @@ nav {
 .btn-follow.following {
     color: #10b981;
 }
+
 /* MODAL BACKDROP & CONTAINER */
 .modal-backdrop {
     position: fixed;
@@ -673,26 +672,20 @@ nav {
     left: 0;
     width: 100vw;
     height: 100vh;
-    
-    /* Fallback for browsers with no blur support */
     background: rgba(0, 0, 0, 0.85); 
-    
-    /* WebKit prefix for Safari */
     -webkit-backdrop-filter: blur(8px); 
     backdrop-filter: blur(8px);
-    
-    display: flex;
+    display: none; /* Hidden by default */
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 10000;
     opacity: 0;
-    pointer-events: none;
     transition: opacity 0.25s ease;
 }
 
 .modal-backdrop.active {
+    display: flex;
     opacity: 1;
-    pointer-events: auto;
 }
 
 .modal-container {
@@ -803,7 +796,7 @@ nav {
 }
 
 .status-btn.active {
-    background: #e06d53;
+    background: var(--accent-color, #ff6b4a);
     color: #fff;
     font-weight: 600;
 }
@@ -826,7 +819,7 @@ nav {
 }
 
 .rate-num.active {
-    background: #e06d53;
+    background: var(--accent-color, #ff6b4a);
     color: #fff;
 }
 
@@ -844,7 +837,7 @@ nav {
 }
 
 .btn-save-library {
-    background: #e06d53;
+    background: var(--accent-color, #ff6b4a);
     color: #fff;
     border: none;
     border-radius: 8px;
