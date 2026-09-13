@@ -9,8 +9,10 @@ const API_CONFIG = {
 const SUPABASE_URL = 'https://ijqaftsyaxbqwgprkwxs.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlqcWFmdHN5YXhicXdncHJrd3hzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTYzODIsImV4cCI6MjEwNDg5MjM4Mn0.spPD3I8aZZAQeIcYr7ej4V3H94P1A_eFjcuS2VLIqog';
 
-// Initialize Supabase Client (requires CDN script tag in index.html)
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Initialize Supabase Client safely with a distinct variable name
+const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabase.createClient) 
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+    : null;
 
 // Mixed Dataset (Movies & TV Shows Fallback)
 const FALLBACK_MEDIA = [
@@ -57,19 +59,29 @@ let currentUser = null;
 let isSignUpMode = false;
 
 // --- HELPER FUNCTIONS ---
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
 function getInitials(name) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
 }
 
 // --- AUTHENTICATION FUNCTIONS ---
 async function signUp(email, password, username) {
-    if (!supabase) return console.warn('Supabase client not initialized');
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (!supabaseClient) return console.warn('Supabase client not initialized');
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
     
     if (error) return alert('Signup error: ' + error.message);
     
     if (data.user) {
-        await supabase.from('profiles').insert([
+        await supabaseClient.from('profiles').insert([
             { id: data.user.id, username: username || email.split('@')[0], avatar_color: '#6366f1' }
         ]);
         alert('Account created! Check your email for verification.');
@@ -77,25 +89,25 @@ async function signUp(email, password, username) {
 }
 
 async function signIn(email, password) {
-    if (!supabase) return console.warn('Supabase client not initialized');
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!supabaseClient) return console.warn('Supabase client not initialized');
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) return alert('Login error: ' + error.message);
     console.log('Logged in successfully:', data.user);
 }
 
 async function signOut() {
-    if (!supabase) return;
-    const { error } = await supabase.auth.signOut();
+    if (!supabaseClient) return;
+    const { error } = await supabaseClient.auth.signOut();
     if (error) console.error('Logout error:', error.message);
     else alert('Signed out successfully.');
 }
 
 // --- WATCHLIST DATABASE OPERATIONS ---
 async function addToWatchlist(item) {
-    if (!supabase) return;
+    if (!supabaseClient) return;
     if (!currentUser) return alert('Please log in to save items!');
 
-    const { data, error } = await supabase.from('watchlists').insert([
+    const { data, error } = await supabaseClient.from('watchlists').insert([
         {
             user_id: currentUser.id,
             media_id: String(item.id || item.title),
@@ -114,8 +126,8 @@ async function addToWatchlist(item) {
 }
 
 async function fetchUserWatchlist(userId) {
-    if (!supabase) return;
-    const { data, error } = await supabase
+    if (!supabaseClient) return;
+    const { data, error } = await supabaseClient
         .from('watchlists')
         .select('*')
         .eq('user_id', userId);
@@ -133,8 +145,6 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
 
     try {
         let endpoint = '';
-        
-        // Target dynamic TMDB endpoints based on category filter
         if (filterCategory === 'Movie') {
             endpoint = `${API_CONFIG.BASE_URL}/trending/movie/week?api_key=${API_CONFIG.KEY}`;
         } else if (filterCategory === 'TV Show') {
@@ -148,7 +158,7 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
 
         if (data.results && data.results.length > 0) {
             mediaList = data.results.map(item => {
-                const isMovie = (item.media_type === 'movie') || item.title;
+                const isMovie = (item.media_type === 'movie') || Boolean(item.title);
                 return {
                     id: item.id,
                     title: isMovie ? item.title : item.name,
@@ -171,29 +181,36 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
         }
     }
 
-    gridContainer.innerHTML = mediaList.map(item => `
-        <div class="movie-card" 
-             data-id="${item.id || ''}"
-             data-title="${item.title}" 
-             data-year="${item.release_date ? item.release_date.split('-')[0] : 'N/A'}"
-             data-type="${item.type}"
-             data-rating="${item.vote_average ? Number(item.vote_average).toFixed(1) : '8.0'}"
-             data-overview="${item.overview ? item.overview.replace(/"/g, '&quot;') : 'No description available.'}"
-             data-genres="${item.genres || 'Sci-Fi'}">
-            <div class="poster-wrapper">
-                <img src="${item.poster_path}" alt="${item.title}" loading="lazy">
-                <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.vote_average ? Number(item.vote_average).toFixed(1) : 'N/A'}</div>
-                <div class="status-badge">${item.type}</div>
-            </div>
-            <div class="movie-info">
-                <div>
-                    <div class="movie-title">${item.title}</div>
-                    <div class="movie-meta">${item.release_date ? item.release_date.split('-')[0] : 'N/A'} · ${item.type}</div>
+    gridContainer.innerHTML = mediaList.map(item => {
+        const titleEscaped = escapeHtml(item.title);
+        const overviewEscaped = escapeHtml(item.overview);
+        const yearFormatted = item.release_date ? item.release_date.split('-')[0] : 'N/A';
+        const ratingFormatted = item.vote_average ? Number(item.vote_average).toFixed(1) : '8.0';
+
+        return `
+            <div class="movie-card" 
+                 data-id="${item.id || ''}"
+                 data-title="${titleEscaped}" 
+                 data-year="${yearFormatted}"
+                 data-type="${item.type}"
+                 data-rating="${ratingFormatted}"
+                 data-overview="${overviewEscaped}"
+                 data-genres="${escapeHtml(item.genres || 'Sci-Fi')}">
+                <div class="poster-wrapper">
+                    <img src="${item.poster_path}" alt="${titleEscaped}" loading="lazy">
+                    <div class="rating-badge"><i class="fa-solid fa-star"></i> ${ratingFormatted}</div>
+                    <div class="status-badge">${item.type}</div>
                 </div>
-                <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
+                <div class="movie-info">
+                    <div>
+                        <div class="movie-title">${titleEscaped}</div>
+                        <div class="movie-meta">${yearFormatted} · ${item.type}</div>
+                    </div>
+                    <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // --- SOCIAL FEED ---
@@ -208,8 +225,8 @@ function renderSocialFeed(posts) {
                     ${getInitials(post.user.name)}
                 </div>
                 <div class="user-meta">
-                    <span class="user-name">${post.user.name}</span>
-                    <span class="user-handle">@${post.user.username} · ${post.timestamp}</span>
+                    <span class="user-name">${escapeHtml(post.user.name)}</span>
+                    <span class="user-handle">@${escapeHtml(post.user.username)} · ${post.timestamp}</span>
                 </div>
                 <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
             </div>
@@ -219,15 +236,15 @@ function renderSocialFeed(posts) {
                 </p>
                 ${post.media ? `
                     <div class="media-card" 
-                         data-title="${post.media.title}"
+                         data-title="${escapeHtml(post.media.title)}"
                          data-year="${post.media.year}"
                          data-type="${post.media.type}"
                          data-rating="${post.rating || '8.5'}"
                          data-overview="High intensity anime set in Night City."
                          data-genres="Anime · Sci-Fi">
-                        <img src="${post.media.posterUrl}" alt="${post.media.title}">
+                        <img src="${post.media.posterUrl}" alt="${escapeHtml(post.media.title)}">
                         <div class="media-info">
-                            <h4>${post.media.title}</h4>
+                            <h4>${escapeHtml(post.media.title)}</h4>
                             <p>${post.media.year} · ${post.media.type}</p>
                         </div>
                     </div>
@@ -251,7 +268,7 @@ function renderPeopleToFollow(users) {
                 ${getInitials(user.name)}
             </div>
             <div class="user-meta">
-                <span class="user-name">${user.name}</span>
+                <span class="user-name">${escapeHtml(user.name)}</span>
                 <span class="user-sub">${user.mutualsCount} mutuals</span>
             </div>
             <button class="btn-follow ${user.isFollowing ? 'following' : ''}">
@@ -323,8 +340,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const usernameGroup = document.getElementById('usernameGroup');
 
     // 1. Listen for Supabase Authentication State Changes
-    if (supabase) {
-        supabase.auth.onAuthStateChange((event, session) => {
+    if (supabaseClient) {
+        supabaseClient.auth.onAuthStateChange((event, session) => {
             currentUser = session ? session.user : null;
             if (currentUser) {
                 console.log('Active user authenticated:', currentUser.id);
