@@ -82,6 +82,13 @@ function saveViewState(viewId, filter = 'all') {
 }
 
 // --- HELPER FUNCTIONS ---
+function normalizeString(str) {
+    if (!str) return '';
+    return String(str)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, ''); // Removes spaces, hyphens, and special characters
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -739,7 +746,7 @@ function renderMediaListTable() {
     const tableBody = document.getElementById('mediaListTableBody');
     if (!tableBody) return;
 
-    const searchTerm = document.getElementById('listSearchInput')?.value.toLowerCase() || '';
+    const searchTerm = normalizeString(document.getElementById('listSearchInput')?.value || '');
     const formatFilter = document.getElementById('listFormatFilter')?.value || 'all';
 
     let entries = Object.values(userEntries);
@@ -753,7 +760,7 @@ function renderMediaListTable() {
     }
 
     if (searchTerm) {
-        entries = entries.filter(e => e.title.toLowerCase().includes(searchTerm));
+        entries = entries.filter(e => normalizeString(e.title).includes(searchTerm));
     }
 
     if (entries.length === 0) {
@@ -1237,12 +1244,13 @@ async function triggerSearchExecution() {
         rawMediaList = localArray.length > 0 ? localArray : FALLBACK_MEDIA;
     }
 
-    // Apply Filters (Query, Genres, Year Range, Min Rating)
+    // Apply Filters (Normalized Query Match, Genres, Year Range, Min Rating)
     let filteredList = rawMediaList.filter(item => {
-        // Text Match
+        // Tolerant Text Match (e.g., "spiderman" matches "Spider-Man")
         if (searchState.query) {
-            const titleMatch = item.title.toLowerCase().includes(searchState.query.toLowerCase());
-            if (!titleMatch) return false;
+            const queryNorm = normalizeString(searchState.query);
+            const titleNorm = normalizeString(item.title);
+            if (!titleNorm.includes(queryNorm)) return false;
         }
 
         // Rating Match
@@ -1279,12 +1287,6 @@ function applySortAndRenderResults() {
             const yA = parseInt(a.release_date ? a.release_date.split('-')[0] : a.year) || 0;
             const yB = parseInt(b.release_date ? b.release_date.split('-')[0] : b.year) || 0;
             return yB - yA;
-        });
-    } else if (sortBy === 'old-new') {
-        sorted.sort((a, b) => {
-            const yA = parseInt(a.release_date ? a.release_date.split('-')[0] : a.year) || 0;
-            const yB = parseInt(b.release_date ? b.release_date.split('-')[0] : b.year) || 0;
-            return yA - yB;
         });
     } else if (sortBy === 'highest-rated') {
         sorted.sort((a, b) => {
