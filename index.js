@@ -148,13 +148,19 @@ function updateProfileStats() {
         `).join('');
     }
 
-    // Favorite Media Grid Update
+    // Favorite Media Grid Update (with full dataset attributes restored)
     const favGrid = document.querySelector('.profile-media-mini-grid');
     const favorites = entries.filter(e => e.isFavorite);
     if (favGrid) {
         if (favorites.length > 0) {
             favGrid.innerHTML = favorites.map(item => `
-                <div class="movie-card" data-id="${item.id}">
+                <div class="movie-card" 
+                     data-id="${item.id}" 
+                     data-title="${escapeHtml(item.title)}" 
+                     data-type="${escapeHtml(item.type)}" 
+                     data-rating="${item.score || '8.0'}"
+                     data-genres="${escapeHtml(item.genres || '')}"
+                     data-backdrop="${item.backdrop_path || ''}">
                     <div class="poster-wrapper">
                         <img src="${item.poster_path}" alt="${escapeHtml(item.title)}">
                         <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.score || '8.0'}</div>
@@ -273,7 +279,13 @@ function renderFavoritesPage() {
     }
 
     favGrid.innerHTML = favorites.map(item => `
-        <div class="movie-card" data-id="${item.id}">
+        <div class="movie-card" 
+             data-id="${item.id}" 
+             data-title="${escapeHtml(item.title)}" 
+             data-type="${escapeHtml(item.type)}" 
+             data-rating="${item.score || '8.0'}"
+             data-genres="${escapeHtml(item.genres || '')}"
+             data-backdrop="${item.backdrop_path || ''}">
             <div class="poster-wrapper">
                 <img src="${item.poster_path}" alt="${escapeHtml(item.title)}">
                 <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.score || '8.0'}</div>
@@ -716,17 +728,20 @@ async function fetchUserWatchlist(userId) {
         console.error('Error fetching watchlist:', error.message);
     } else if (data) {
         data.forEach(item => {
+            const existing = userEntries[item.media_id] || {};
+            // Merge Supabase fields into local entries object without losing favorites or metadata
             userEntries[item.media_id] = {
+                ...existing,
                 id: item.media_id,
                 title: item.title,
-                type: item.media_type,
-                poster_path: item.poster_path,
-                score: item.rating || 0,
-                status: item.status || 'Completed',
-                notes: item.notes || ''
+                type: item.media_type || existing.type || 'Movie',
+                poster_path: item.poster_path || existing.poster_path,
+                score: item.rating !== null ? item.rating : (existing.score || 0),
+                status: item.status || existing.status || 'Plan to Watch',
+                notes: item.notes || existing.notes || ''
             };
         });
-        saveEntriesToLocalStorage(); // Merge Supabase items into localStorage
+        saveEntriesToLocalStorage(); // Update localStorage with merged dataset
         updateProfileStats();
         renderProfileSubView(activeProfileTab);
     }
@@ -994,7 +1009,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2. Initialize Sub-Tabs
     initProfileSubTabs();
 
-    // Restore active sub-tab if stored
+    // Restore active sub-tab if stored and trigger render
     const savedSubTab = localStorage.getItem('streamhub_activeProfileTab');
     if (savedSubTab) {
         activeProfileTab = savedSubTab;
@@ -1005,6 +1020,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll('.profile-tab-content').forEach(c => {
             c.classList.toggle('active', c.id === `tab-${activeProfileTab}`);
         });
+        renderProfileSubView(activeProfileTab);
     }
 
     // 3. Setup Listeners
