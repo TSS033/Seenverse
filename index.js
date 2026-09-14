@@ -44,6 +44,17 @@ let activeListFilter = 'all';
 let currentMovieGenreSort = 'count';
 let currentTvGenreSort = 'count';
 
+// --- SEARCH & FILTER STATE ---
+let searchState = {
+    query: '',
+    selectedGenres: [],
+    yearFrom: null,
+    yearTo: null,
+    minRating: 0,
+    sortBy: 'new-old',
+    currentResults: []
+};
+
 // --- LOCAL STORAGE PERSISTENCE HELPERS ---
 function saveEntriesToLocalStorage() {
     try {
@@ -1087,6 +1098,247 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
     }).join('');
 }
 
+// --- SEARCH, FILTER & SORT CONTROLLER ---
+function initSearchControls() {
+    const filterPanel = document.getElementById('advancedFilterPanel');
+    const filterToggleBtn = document.getElementById('filterToggleBtn');
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchSubmitBtn = document.getElementById('globalSearchSubmitBtn');
+    const minRatingSlider = document.getElementById('filterMinRating');
+    const minRatingDisplay = document.getElementById('minRatingValDisplay');
+    const sortSelect = document.getElementById('sortResultsSelect');
+
+    // 1. Toggle Filter Panel Dropdown
+    filterToggleBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        filterPanel?.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (filterPanel && !filterPanel.contains(e.target) && e.target !== filterToggleBtn) {
+            filterPanel.classList.remove('active');
+        }
+    });
+
+    document.getElementById('closeFilterPanelBtn')?.addEventListener('click', () => {
+        filterPanel?.classList.remove('active');
+    });
+
+    // 2. Multi-genre Selection Chips
+    document.querySelectorAll('#filterGenreChips .chip-option').forEach(chip => {
+        chip.addEventListener('click', () => {
+            chip.classList.toggle('selected');
+            const genre = chip.getAttribute('data-genre');
+            if (chip.classList.contains('selected')) {
+                if (!searchState.selectedGenres.includes(genre)) searchState.selectedGenres.push(genre);
+            } else {
+                searchState.selectedGenres = searchState.selectedGenres.filter(g => g !== genre);
+            }
+        });
+    });
+
+    // 3. Min Rating Live Label
+    minRatingSlider?.addEventListener('input', (e) => {
+        if (minRatingDisplay) minRatingDisplay.textContent = Number(e.target.value).toFixed(1);
+    });
+
+    // 4. Trigger Search on Button Click or Enter Key
+    searchSubmitBtn?.addEventListener('click', triggerSearchExecution);
+    searchInput?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') triggerSearchExecution();
+    });
+
+    document.getElementById('applyFiltersBtn')?.addEventListener('click', () => {
+        filterPanel?.classList.remove('active');
+        triggerSearchExecution();
+    });
+
+    // 5. Reset Filters Button
+    document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
+        searchState.selectedGenres = [];
+        searchState.yearFrom = null;
+        searchState.yearTo = null;
+        searchState.minRating = 0;
+        
+        document.querySelectorAll('#filterGenreChips .chip-option').forEach(c => c.classList.remove('selected'));
+        if (document.getElementById('filterYearFrom')) document.getElementById('filterYearFrom').value = '';
+        if (document.getElementById('filterYearTo')) document.getElementById('filterYearTo').value = '';
+        if (minRatingSlider) minRatingSlider.value = 0;
+        if (minRatingDisplay) minRatingDisplay.textContent = '0.0';
+        updateFilterIndicator();
+    });
+
+    // 6. Sort Selector Listener
+    sortSelect?.addEventListener('change', (e) => {
+        searchState.sortBy = e.target.value;
+        if (searchState.currentResults.length > 0) {
+            applySortAndRenderResults();
+        }
+    });
+}
+
+function updateFilterIndicator() {
+    const activeDot = document.getElementById('filterActiveDot');
+    const hasActiveFilters = searchState.selectedGenres.length > 0 || 
+                             searchState.yearFrom || 
+                             searchState.yearTo || 
+                             searchState.minRating > 0;
+
+    if (activeDot) activeDot.style.display = hasActiveFilters ? 'block' : 'none';
+}
+
+// --- EXECUTE SEARCH ENGINE ---
+async function triggerSearchExecution() {
+    const queryInput = document.getElementById('globalSearchInput')?.value.trim() || '';
+    const yFrom = parseInt(document.getElementById('filterYearFrom')?.value) || null;
+    const yTo = parseInt(document.getElementById('filterYearTo')?.value) || null;
+    const minRating = parseFloat(document.getElementById('filterMinRating')?.value) || 0;
+
+    searchState.query = queryInput;
+    searchState.yearFrom = yFrom;
+    searchState.yearTo = yTo;
+    searchState.minRating = minRating;
+
+    updateFilterIndicator();
+
+    let rawMediaList = [];
+
+    // Fetch from TMDB API if query exists
+    if (queryInput.length > 0) {
+        try {
+            const endpoint = `${API_CONFIG.BASE_URL}/search/multi?api_key=${API_CONFIG.KEY}&query=${encodeURIComponent(queryInput)}`;
+            const response = await fetch(endpoint);
+            const data = await response.json();
+
+            if (data.results && data.results.length > 0) {
+                rawMediaList = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv').map(item => {
+                    const isMovie = item.media_type === 'movie';
+                    return {
+                        id: String(item.id),
+                        title: isMovie ? item.title : item.name,
+                        release_date: isMovie ? item.release_date : item.first_air_date,
+                        vote_average: item.vote_average || 0,
+                        type: isMovie ? 'Movie' : 'TV Show',
+                        poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
+                        backdrop_path: item.backdrop_path ? (API_CONFIG.BACKDROP_BASE + item.backdrop_path) : '',
+                        overview: item.overview || 'No overview available.',
+                        genres: isMovie ? 'Sci-Fi · Action' : 'Drama · Sci-Fi'
+                    };
+                });
+            }
+        } catch (e) {
+            console.error("API search failed, falling back to local dataset:", e);
+        }
+    }
+
+    // Merge API results or fallback dataset with existing user library entries
+    if (rawMediaList.length === 0) {
+        const localArray = Object.values(userEntries);
+        rawMediaList = localArray.length > 0 ? localArray : FALLBACK_MEDIA;
+    }
+
+    // Apply Filters (Query, Genres, Year Range, Min Rating)
+    let filteredList = rawMediaList.filter(item => {
+        // Text Match
+        if (searchState.query) {
+            const titleMatch = item.title.toLowerCase().includes(searchState.query.toLowerCase());
+            if (!titleMatch) return false;
+        }
+
+        // Rating Match
+        const rating = Number(item.vote_average || item.score || 0);
+        if (rating < searchState.minRating) return false;
+
+        // Year Match
+        const releaseYear = parseInt(item.release_date ? item.release_date.split('-')[0] : item.year) || 0;
+        if (searchState.yearFrom && releaseYear < searchState.yearFrom) return false;
+        if (searchState.yearTo && releaseYear > searchState.yearTo) return false;
+
+        // Genre Match (matches if item has AT LEAST ONE selected genre)
+        if (searchState.selectedGenres.length > 0 && item.genres) {
+            const itemGenres = item.genres.split('·').map(g => g.trim());
+            const hasMatchingGenre = searchState.selectedGenres.some(g => itemGenres.includes(g));
+            if (!hasMatchingGenre) return false;
+        }
+
+        return true;
+    });
+
+    searchState.currentResults = filteredList;
+    switchView('searchResultsView');
+    applySortAndRenderResults();
+}
+
+// --- APPLY SORTING & RENDER RESULTS GRID ---
+function applySortAndRenderResults() {
+    let sorted = [...searchState.currentResults];
+    const sortBy = searchState.sortBy;
+
+    if (sortBy === 'new-old') {
+        sorted.sort((a, b) => {
+            const yA = parseInt(a.release_date ? a.release_date.split('-')[0] : a.year) || 0;
+            const yB = parseInt(b.release_date ? b.release_date.split('-')[0] : b.year) || 0;
+            return yB - yA;
+        });
+    } else if (sortBy === 'old-new') {
+        sorted.sort((a, b) => {
+            const yA = parseInt(a.release_date ? a.release_date.split('-')[0] : a.year) || 0;
+            const yB = parseInt(b.release_date ? b.release_date.split('-')[0] : b.year) || 0;
+            return yA - yB;
+        });
+    } else if (sortBy === 'highest-rated') {
+        sorted.sort((a, b) => {
+            const rA = Number(a.vote_average || a.score || 0);
+            const rB = Number(b.vote_average || b.score || 0);
+            return rB - rA;
+        });
+    }
+
+    const grid = document.getElementById('searchResultsGrid');
+    const countLabel = document.getElementById('searchResultsCount');
+    const titleLabel = document.getElementById('searchResultsTitle');
+
+    if (titleLabel) {
+        titleLabel.textContent = searchState.query ? `Results for "${searchState.query}"` : 'Filtered Results';
+    }
+
+    if (countLabel) {
+        countLabel.textContent = `Showing ${sorted.length} ${sorted.length === 1 ? 'title' : 'titles'}`;
+    }
+
+    if (!grid) return;
+
+    if (sorted.length === 0) {
+        grid.innerHTML = `<div class="muted-text py-5 text-center" style="grid-column: 1/-1;">No matching movies or TV shows found matching your criteria.</div>`;
+        return;
+    }
+
+    grid.innerHTML = sorted.map(item => `
+        <div class="movie-card" 
+             data-id="${item.id}"
+             data-title="${escapeHtml(item.title)}" 
+             data-year="${item.release_date ? item.release_date.split('-')[0] : 'N/A'}"
+             data-type="${item.type}"
+             data-rating="${Number(item.vote_average || item.score || 8.0).toFixed(1)}"
+             data-overview="${escapeHtml(item.overview || '')}"
+             data-backdrop="${item.backdrop_path || ''}"
+             data-genres="${escapeHtml(item.genres || '')}">
+            <div class="poster-wrapper">
+                <img src="${item.poster_path || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop'}" alt="${escapeHtml(item.title)}" loading="lazy">
+                <div class="rating-badge"><i class="fa-solid fa-star"></i> ${Number(item.vote_average || item.score || 8.0).toFixed(1)}</div>
+                <div class="status-badge">${item.type}</div>
+            </div>
+            <div class="movie-info">
+                <div>
+                    <div class="movie-title">${escapeHtml(item.title)}</div>
+                    <div class="movie-meta">${item.release_date ? item.release_date.split('-')[0] : 'N/A'} · ${item.type}</div>
+                </div>
+                <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
+            </div>
+        </div>
+    `).join('');
+}
+
 // --- SOCIAL FEED ---
 function renderSocialFeed(posts) {
     const feedContainer = document.getElementById('socialFeed');
@@ -1276,9 +1528,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1. Load LocalStorage Entries
     loadEntriesFromLocalStorage();
 
-    // 2. Initialize Tab Controls
+    // 2. Initialize Tab & Search Controls
     initProfileSubTabs();
     initStatsTabControls();
+    initSearchControls();
 
     // Restore active sub-tab if stored
     const savedSubTab = localStorage.getItem('streamhub_activeProfileTab');

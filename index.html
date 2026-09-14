@@ -33,7 +33,64 @@
                 </div>
             </div>
             <div class="nav-right">
-                <input type="text" class="search-bar" placeholder="Search movies, TV...">
+                <!-- SEARCH BAR WITH FILTER TOGGLE & PANEL -->
+                <div class="search-bar-wrapper">
+                    <div class="search-input-group">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="globalSearchInput" class="search-bar" placeholder="Search movies, TV..." autocomplete="off">
+                        <button type="button" id="filterToggleBtn" class="filter-toggle-btn" title="Advanced Filters">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span class="filter-dot" id="filterActiveDot" style="display: none;"></span>
+                        </button>
+                        <button type="button" id="globalSearchSubmitBtn" class="search-submit-btn">Search</button>
+                    </div>
+
+                    <!-- ADVANCED FILTER POPUP PANEL -->
+                    <div class="filter-panel" id="advancedFilterPanel">
+                        <div class="filter-panel-header">
+                            <h4><i class="fa-solid fa-filter"></i> Refine Search</h4>
+                            <button type="button" class="close-panel-btn" id="closeFilterPanelBtn">&times;</button>
+                        </div>
+
+                        <div class="filter-panel-body">
+                            <!-- Genre Selector -->
+                            <div class="filter-group">
+                                <label>Genres</label>
+                                <div class="genre-chips-select" id="filterGenreChips">
+                                    <span class="chip-option" data-genre="Action">Action</span>
+                                    <span class="chip-option" data-genre="Adventure">Adventure</span>
+                                    <span class="chip-option" data-genre="Comedy">Comedy</span>
+                                    <span class="chip-option" data-genre="Drama">Drama</span>
+                                    <span class="chip-option" data-genre="Fantasy">Fantasy</span>
+                                    <span class="chip-option" data-genre="Sci-Fi">Sci-Fi</span>
+                                    <span class="chip-option" data-genre="Anime">Anime</span>
+                                </div>
+                            </div>
+
+                            <!-- Release Year Range -->
+                            <div class="filter-group">
+                                <label>Release Year Range</label>
+                                <div class="year-range-inputs">
+                                    <input type="number" id="filterYearFrom" placeholder="From (e.g. 1990)" min="1900" max="2026">
+                                    <span>to</span>
+                                    <input type="number" id="filterYearTo" placeholder="To (e.g. 2026)" min="1900" max="2026">
+                                </div>
+                            </div>
+
+                            <!-- Minimum Rating -->
+                            <div class="filter-group">
+                                <label>Minimum Rating: <span id="minRatingValDisplay">0.0</span> / 10</label>
+                                <input type="range" id="filterMinRating" min="0" max="10" step="0.5" value="0">
+                            </div>
+                        </div>
+
+                        <div class="filter-panel-footer">
+                            <button type="button" class="btn-secondary" id="resetFiltersBtn">Reset</button>
+                            <button type="button" class="btn-primary" id="applyFiltersBtn">Apply & Search</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="avatar-wrapper">
                     <div class="avatar">JS</div>
                     
@@ -493,6 +550,30 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- VIEW 4: SEARCH RESULTS PAGE -->
+    <section id="searchResultsView" class="view-section">
+        <div class="section-header results-header">
+            <div>
+                <h2 id="searchResultsTitle">Search Results</h2>
+                <p id="searchResultsCount" class="muted-text">Showing 0 results</p>
+            </div>
+
+            <!-- SORT BY DROPDOWN -->
+            <div class="sort-wrapper">
+                <label for="sortResultsSelect"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort By:</label>
+                <select id="sortResultsSelect" class="sort-select">
+                    <option value="new-old">Newest to Oldest</option>
+                    <option value="old-new">Oldest to Newest</option>
+                    <option value="highest-rated">Highest Rated</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="movie-grid" id="searchResultsGrid">
+            <!-- Rendered search cards will populate here -->
         </div>
     </section>
 

@@ -94,18 +94,207 @@ nav {
     gap: 1rem;
 }
 
-.search-bar {
-    background-color: var(--surface-color);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    color: var(--text-main);
-    width: 180px;
-    font-family: var(--font-family);
+/* --- SEARCH BAR & ADVANCED FILTER PANEL --- */
+.search-bar-wrapper {
+    position: relative;
 }
 
-.search-bar:focus { 
-    outline: 1px solid var(--accent-color); 
+.search-input-group {
+    display: flex;
+    align-items: center;
+    background-color: var(--surface-color);
+    border-radius: 20px;
+    padding: 2px 4px 2px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: border-color 0.2s ease;
+}
+
+.search-input-group:focus-within {
+    border-color: var(--accent-color);
+}
+
+.search-input-group .search-icon {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-right: 6px;
+}
+
+.search-input-group .search-bar {
+    background: transparent;
+    border: none;
+    padding: 0.45rem 0.25rem;
+    width: 150px;
+    outline: none;
+    color: var(--text-main);
+    font-family: var(--font-family);
+    font-size: 0.85rem;
+}
+
+.filter-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    position: relative;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.filter-toggle-btn:hover {
+    color: var(--text-main);
+}
+
+.filter-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 7px;
+    height: 7px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+}
+
+.search-submit-btn {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 0.35rem 0.85rem;
+    border-radius: 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: opacity 0.2s;
+}
+
+.search-submit-btn:hover {
+    opacity: 0.9;
+}
+
+/* Filter Panel Dropdown Popup */
+.filter-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 320px;
+    background-color: #161a23;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 1000;
+}
+
+.filter-panel.active {
+    display: flex;
+}
+
+.filter-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.6rem;
+}
+
+.filter-panel-header h4 {
+    font-size: 0.95rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.genre-chips-select {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.chip-option {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    padding: 0.25rem 0.65rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chip-option:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.chip-option.selected {
+    background-color: rgba(255, 107, 74, 0.2);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.year-range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.year-range-inputs input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    color: #fff;
+    font-size: 0.8rem;
+    outline: none;
+}
+
+.year-range-inputs span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.filter-panel-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 0.75rem;
+}
+
+.filter-panel-footer button {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
 }
 
 /* --- Profile Avatar & Dropdown Menu --- */
@@ -378,6 +567,31 @@ nav {
     font-weight: 600;
 }
 
+/* --- SEARCH RESULTS VIEW HEADER & SORTING --- */
+.results-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 1rem;
+}
+
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.sort-select {
+    background-color: var(--surface-color);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+}
+
 /* --- Movie Grid --- */
 .movie-grid {
     display: grid;
@@ -549,8 +763,8 @@ nav {
         margin-left: 2rem;
     }
 
-    .search-bar {
-        width: 250px;
+    .search-input-group .search-bar {
+        width: 220px;
     }
 
     .hero {
@@ -1780,6 +1994,7 @@ nav {
     flex-direction: column;
     gap: 1rem;
 }
+
 /* --- GENRES STATS PAGE STYLES --- */
 .genres-section-header {
     display: flex;
