@@ -1194,7 +1194,7 @@ function updateFilterIndicator() {
     if (activeDot) activeDot.style.display = hasActiveFilters ? 'block' : 'none';
 }
 
-// --- EXECUTE SEARCH ENGINE ---
+// --- EXECUTE SEARCH ENGINE (INTEGRATED FUZZY SEARCH WITH FUSE.JS) ---
 async function triggerSearchExecution() {
     const queryInput = document.getElementById('globalSearchInput')?.value.trim() || '';
     const yFrom = parseInt(document.getElementById('filterYearFrom')?.value) || null;
@@ -1244,15 +1244,35 @@ async function triggerSearchExecution() {
         rawMediaList = localArray.length > 0 ? localArray : FALLBACK_MEDIA;
     }
 
-    // Apply Filters (Normalized Query Match, Genres, Year Range, Min Rating)
-    let filteredList = rawMediaList.filter(item => {
-        // Tolerant Text Match (e.g., "spiderman" matches "Spider-Man")
-        if (searchState.query) {
-            const queryNorm = normalizeString(searchState.query);
-            const titleNorm = normalizeString(item.title);
-            if (!titleNorm.includes(queryNorm)) return false;
-        }
+    // --- FUZZY MATCHING WITH WEIGHTED FUSE.JS ENGINE ---
+    let filteredList = rawMediaList;
 
+    if (searchState.query) {
+        if (typeof Fuse !== 'undefined') {
+            const fuseOptions = {
+                includeScore: true,
+                threshold: 0.35,        // 0.35 provides balanced typo tolerance
+                distance: 100,          // Distance to search within titles
+                minMatchCharLength: 2,
+                ignoreLocation: true,   // Matches anywhere in the title
+                keys: [
+                    { name: 'title', weight: 0.8 },
+                    { name: 'genres', weight: 0.2 }
+                ]
+            };
+
+            const fuse = new Fuse(rawMediaList, fuseOptions);
+            const fuseResults = fuse.search(searchState.query);
+            filteredList = fuseResults.map(res => res.item);
+        } else {
+            // Fallback normalized substring check if Fuse library fails to load
+            const queryNorm = normalizeString(searchState.query);
+            filteredList = rawMediaList.filter(item => normalizeString(item.title).includes(queryNorm));
+        }
+    }
+
+    // Apply Secondary Filters (Min Rating, Year Range, Selected Genres)
+    filteredList = filteredList.filter(item => {
         // Rating Match
         const rating = Number(item.vote_average || item.score || 0);
         if (rating < searchState.minRating) return false;
@@ -1262,7 +1282,7 @@ async function triggerSearchExecution() {
         if (searchState.yearFrom && releaseYear < searchState.yearFrom) return false;
         if (searchState.yearTo && releaseYear > searchState.yearTo) return false;
 
-        // Genre Match (matches if item has AT LEAST ONE selected genre)
+        // Genre Match
         if (searchState.selectedGenres.length > 0 && item.genres) {
             const itemGenres = item.genres.split('·').map(g => g.trim());
             const hasMatchingGenre = searchState.selectedGenres.some(g => itemGenres.includes(g));
