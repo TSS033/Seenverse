@@ -296,148 +296,162 @@
         <div id="tab-stats" class="profile-tab-content">
             <div class="stats-layout">
                 <aside class="stats-sidebar">
-                    <div class="sidebar-heading">Media Stats</div>
-                    <button class="stats-side-btn active" data-stats-sub="overview">Overview</button>
-                    <button class="stats-side-btn" data-stats-sub="genres">Genres</button>
-                    <button class="stats-side-btn" data-stats-sub="formats">Formats</button>
+                    <!-- SECTION 1: MOVIES -->
+                    <div class="sidebar-group">
+                        <div class="sidebar-heading"><i class="fa-solid fa-film"></i> Movies</div>
+                        <button class="stats-side-btn active" data-stats-type="movie" data-stats-sub="movie-overview">Overview</button>
+                        <button class="stats-side-btn" data-stats-type="movie" data-stats-sub="movie-genres">Genres</button>
+                    </div>
+
+                    <!-- SECTION 2: TV SHOWS -->
+                    <div class="sidebar-group mt-4">
+                        <div class="sidebar-heading"><i class="fa-solid fa-tv"></i> TV Shows</div>
+                        <button class="stats-side-btn" data-stats-type="tv" data-stats-sub="tv-overview">Overview</button>
+                        <button class="stats-side-btn" data-stats-type="tv" data-stats-sub="tv-genres">Genres</button>
+                    </div>
                 </aside>
 
                 <main class="stats-main">
-                    <!-- SUB-VIEW 1: OVERVIEW -->
-                    <div id="statsOverviewSection" class="stats-sub-section active">
-                        <!-- Top Metrics Bar -->
+                    <!-- 1. MOVIE OVERVIEW SECTION -->
+                    <div id="statsMovieOverviewSection" class="stats-sub-section active">
                         <div class="stats-metrics-row">
                             <div class="metric-pill">
-                                <i class="fa-solid fa-tv metric-icon"></i>
-                                <div><div class="metric-val" id="statTotalTitles">0</div><div class="metric-lbl">Total Titles</div></div>
-                            </div>
-                            <div class="metric-pill">
-                                <i class="fa-solid fa-play metric-icon"></i>
-                                <div><div class="metric-val" id="statEpisodesWatched">0</div><div class="metric-lbl">Episodes Watched</div></div>
+                                <i class="fa-solid fa-film metric-icon"></i>
+                                <div><div class="metric-val" id="movieStatTotal">0</div><div class="metric-lbl">Total Movies</div></div>
                             </div>
                             <div class="metric-pill">
                                 <i class="fa-solid fa-clock metric-icon"></i>
-                                <div><div class="metric-val" id="statDaysWatched">0.0</div><div class="metric-lbl">Days Watched</div></div>
+                                <div><div class="metric-val" id="movieStatHours">0</div><div class="metric-lbl">Hours Watched</div></div>
+                            </div>
+                            <div class="metric-pill">
+                                <i class="fa-solid fa-calendar-days metric-icon"></i>
+                                <div><div class="metric-val" id="movieStatDays">0.0</div><div class="metric-lbl">Days Watched</div></div>
                             </div>
                             <div class="metric-pill">
                                 <i class="fa-solid fa-star metric-icon"></i>
-                                <div><div class="metric-val" id="statMeanScore">0.0</div><div class="metric-lbl">Mean Score</div></div>
+                                <div><div class="metric-val" id="movieStatMeanScore">0.0</div><div class="metric-lbl">Mean Score</div></div>
                             </div>
                         </div>
 
-                        <!-- 1. Score Distribution Bar Chart -->
-                        <div class="profile-card chart-card">
-                            <div class="chart-header">
-                                <h3>Score Distribution</h3>
-                                <div class="chart-toggle-pills">
-                                    <button class="pill-btn active">Titles Watched</button>
-                                    <button class="pill-btn">Hours Watched</button>
-                                    <button class="pill-btn">Mean Score</button>
-                                </div>
-                            </div>
-                            <div class="bar-chart-container" id="scoreChartContainer">
-                                <!-- Populated dynamically via JS -->
-                            </div>
-                        </div>
-
-                        <!-- 2. Episode Count Bar Chart -->
+                        <!-- Score Distribution (Movies) -->
                         <div class="profile-card chart-card mt-4">
                             <div class="chart-header">
-                                <h3>Episode Count</h3>
+                                <h3>Movie Score Distribution</h3>
                                 <div class="chart-toggle-pills">
                                     <button class="pill-btn active">Titles Watched</button>
                                     <button class="pill-btn">Hours Watched</button>
-                                    <button class="pill-btn">Mean Score</button>
                                 </div>
                             </div>
-                            <div class="bar-chart-container" id="episodeCountChartContainer">
-                                <!-- Populated dynamically via JS -->
-                            </div>
+                            <div class="bar-chart-container" id="movieScoreChartContainer"></div>
                         </div>
 
-                        <!-- 3. Distribution Row (3 Pie/Donut Cards: Format, Status, Country) -->
+                        <!-- Distribution Row (Movies Format, Status, Country) -->
                         <div class="distribution-cards-row mt-4">
-                            <!-- Format Distribution -->
                             <div class="profile-card donut-card">
-                                <h3>Format Distribution</h3>
-                                <div class="donut-card-body" id="formatDonutContainer">
-                                    <!-- Populated dynamically via JS -->
-                                </div>
+                                <h3>Movie Status</h3>
+                                <div class="donut-card-body" id="movieStatusDonutContainer"></div>
                             </div>
-
-                            <!-- Status Distribution -->
-                            <div class="profile-card donut-card">
-                                <h3>Status Distribution</h3>
-                                <div class="donut-card-body" id="statusDonutContainer">
-                                    <!-- Populated dynamically via JS -->
-                                </div>
-                            </div>
-
-                            <!-- Country Distribution -->
                             <div class="profile-card donut-card">
                                 <h3>Country Distribution</h3>
-                                <div class="donut-card-body" id="countryDonutContainer">
-                                    <!-- Populated dynamically via JS -->
-                                </div>
+                                <div class="donut-card-body" id="movieCountryDonutContainer"></div>
                             </div>
                         </div>
 
-                        <!-- 4. Release Year Smooth Line Chart -->
+                        <!-- Release Year (Movies) -->
                         <div class="profile-card chart-card mt-4">
                             <div class="chart-header">
-                                <h3>Release Year</h3>
-                                <div class="chart-toggle-pills">
-                                    <button class="pill-btn active">Titles Watched</button>
-                                    <button class="pill-btn">Hours Watched</button>
-                                    <button class="pill-btn">Mean Score</button>
-                                </div>
+                                <h3>Movie Release Year</h3>
                             </div>
-                            <div class="line-chart-wrapper" id="releaseYearChart">
-                                <!-- Populated dynamically via JS -->
-                            </div>
-                        </div>
-
-                        <!-- 5. Watch Year Smooth Line Chart -->
-                        <div class="profile-card chart-card mt-4">
-                            <div class="chart-header">
-                                <h3>Watch Year</h3>
-                                <div class="chart-toggle-pills">
-                                    <button class="pill-btn active">Titles Watched</button>
-                                    <button class="pill-btn">Hours Watched</button>
-                                    <button class="pill-btn">Mean Score</button>
-                                </div>
-                            </div>
-                            <div class="line-chart-wrapper" id="watchYearChart">
-                                <!-- Populated dynamically via JS -->
-                            </div>
+                            <div class="line-chart-wrapper" id="movieReleaseYearChart"></div>
                         </div>
                     </div>
 
-                    <!-- SUB-VIEW 2: GENRES PAGE -->
-                    <div id="statsGenresSection" class="stats-sub-section" style="display: none;">
+                    <!-- 2. MOVIE GENRES SECTION -->
+                    <div id="statsMovieGenresSection" class="stats-sub-section" style="display: none;">
                         <div class="genres-section-header">
-                            <h2>Genres</h2>
+                            <h2>Movie Genres</h2>
                             <div class="genres-sort-pills">
-                                <button class="genres-pill-btn active" data-sort="count">Count</button>
-                                <button class="genres-pill-btn" data-sort="score">Mean Score</button>
-                                <button class="genres-pill-btn" data-sort="time">Time Watched</button>
+                                <button class="genres-pill-btn active" data-sort="count" data-type="movie">Count</button>
+                                <button class="genres-pill-btn" data-sort="score" data-type="movie">Mean Score</button>
+                                <button class="genres-pill-btn" data-sort="time" data-type="movie">Time Watched</button>
                             </div>
                         </div>
-                        <div id="genresCardsGrid" class="genres-cards-grid">
-                            <!-- Populated dynamically via JS -->
+                        <div id="movieGenresCardsGrid" class="genres-cards-grid"></div>
+                    </div>
+
+                    <!-- 3. TV SHOW OVERVIEW SECTION -->
+                    <div id="statsTvOverviewSection" class="stats-sub-section" style="display: none;">
+                        <div class="stats-metrics-row">
+                            <div class="metric-pill">
+                                <i class="fa-solid fa-tv metric-icon"></i>
+                                <div><div class="metric-val" id="tvStatTotal">0</div><div class="metric-lbl">Total Shows</div></div>
+                            </div>
+                            <div class="metric-pill">
+                                <i class="fa-solid fa-play metric-icon"></i>
+                                <div><div class="metric-val" id="tvStatEpisodes">0</div><div class="metric-lbl">Episodes Watched</div></div>
+                            </div>
+                            <div class="metric-pill">
+                                <i class="fa-solid fa-clock metric-icon"></i>
+                                <div><div class="metric-val" id="tvStatDays">0.0</div><div class="metric-lbl">Days Watched</div></div>
+                            </div>
+                            <div class="metric-pill">
+                                <i class="fa-solid fa-star metric-icon"></i>
+                                <div><div class="metric-val" id="tvStatMeanScore">0.0</div><div class="metric-lbl">Mean Score</div></div>
+                            </div>
+                        </div>
+
+                        <!-- Score Distribution (TV Shows) -->
+                        <div class="profile-card chart-card mt-4">
+                            <div class="chart-header">
+                                <h3>TV Show Score Distribution</h3>
+                                <div class="chart-toggle-pills">
+                                    <button class="pill-btn active">Titles Watched</button>
+                                    <button class="pill-btn">Hours Watched</button>
+                                </div>
+                            </div>
+                            <div class="bar-chart-container" id="tvScoreChartContainer"></div>
+                        </div>
+
+                        <!-- Episode Count Bar Chart (TV Shows) -->
+                        <div class="profile-card chart-card mt-4">
+                            <div class="chart-header">
+                                <h3>TV Show Episode Count</h3>
+                            </div>
+                            <div class="bar-chart-container" id="tvEpisodeCountChartContainer"></div>
+                        </div>
+
+                        <!-- Distribution Row (TV Shows Status & Country) -->
+                        <div class="distribution-cards-row mt-4">
+                            <div class="profile-card donut-card">
+                                <h3>Show Status</h3>
+                                <div class="donut-card-body" id="tvStatusDonutContainer"></div>
+                            </div>
+                            <div class="profile-card donut-card">
+                                <h3>Country Distribution</h3>
+                                <div class="donut-card-body" id="tvCountryDonutContainer"></div>
+                            </div>
+                        </div>
+
+                        <!-- Release Year (TV Shows) -->
+                        <div class="profile-card chart-card mt-4">
+                            <div class="chart-header">
+                                <h3>TV Show Release Year</h3>
+                            </div>
+                            <div class="line-chart-wrapper" id="tvReleaseYearChart"></div>
                         </div>
                     </div>
 
-                    <!-- SUB-VIEW 3: FORMATS -->
-                    <div id="statsFormatsSection" class="stats-sub-section" style="display: none;">
+                    <!-- 4. TV SHOW GENRES SECTION -->
+                    <div id="statsTvGenresSection" class="stats-sub-section" style="display: none;">
                         <div class="genres-section-header">
-                            <h2>Formats</h2>
-                        </div>
-                        <div class="profile-card donut-card">
-                            <div class="donut-card-body" id="formatsDetailContainer">
-                                <!-- Populated dynamically via JS -->
+                            <h2>TV Show Genres</h2>
+                            <div class="genres-sort-pills">
+                                <button class="genres-pill-btn active" data-sort="count" data-type="tv">Count</button>
+                                <button class="genres-pill-btn" data-sort="score" data-type="tv">Mean Score</button>
+                                <button class="genres-pill-btn" data-sort="time" data-type="tv">Time Watched</button>
                             </div>
                         </div>
+                        <div id="tvGenresCardsGrid" class="genres-cards-grid"></div>
                     </div>
                 </main>
             </div>
