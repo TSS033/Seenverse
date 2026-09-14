@@ -12,9 +12,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="index.css">
-    <!-- Supabase JS Client Library -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+    <!-- Supabase & Fuse JS Libraries (Deferred for optimal performance) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0" defer></script>
 </head>
 <body>
 
@@ -36,21 +36,21 @@
             <div class="nav-right">
                 <!-- SEARCH BAR WITH FILTER TOGGLE & PANEL -->
                 <div class="search-bar-wrapper">
-                    <div class="search-input-group">
+                    <form id="globalSearchForm" class="search-input-group" action="#">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="globalSearchInput" class="search-bar" placeholder="Search movies, TV..." autocomplete="off">
-                        <button type="button" id="filterToggleBtn" class="filter-toggle-btn" title="Advanced Filters">
+                        <input type="text" id="globalSearchInput" class="search-bar" placeholder="Search movies, TV..." autocomplete="off" aria-label="Search movies and TV shows">
+                        <button type="button" id="filterToggleBtn" class="filter-toggle-btn" title="Advanced Filters" aria-label="Toggle Advanced Filters">
                             <i class="fa-solid fa-sliders"></i>
                             <span class="filter-dot" id="filterActiveDot" style="display: none;"></span>
                         </button>
-                        <button type="button" id="globalSearchSubmitBtn" class="search-submit-btn">Search</button>
-                    </div>
+                        <button type="submit" id="globalSearchSubmitBtn" class="search-submit-btn">Search</button>
+                    </form>
 
                     <!-- ADVANCED FILTER POPUP PANEL -->
                     <div class="filter-panel" id="advancedFilterPanel">
                         <div class="filter-panel-header">
                             <h4><i class="fa-solid fa-filter"></i> Refine Search</h4>
-                            <button type="button" class="close-panel-btn" id="closeFilterPanelBtn">&times;</button>
+                            <button type="button" class="close-panel-btn" id="closeFilterPanelBtn" aria-label="Close Filter Panel">&times;</button>
                         </div>
 
                         <div class="filter-panel-body">
@@ -70,17 +70,17 @@
 
                             <!-- Release Year Range -->
                             <div class="filter-group">
-                                <label>Release Year Range</label>
+                                <label for="filterYearFrom">Release Year Range</label>
                                 <div class="year-range-inputs">
-                                    <input type="number" id="filterYearFrom" placeholder="From (e.g. 1990)" min="1900" max="2026">
+                                    <input type="number" id="filterYearFrom" placeholder="From (e.g. 1990)" min="1900" max="2026" aria-label="Year From">
                                     <span>to</span>
-                                    <input type="number" id="filterYearTo" placeholder="To (e.g. 2026)" min="1900" max="2026">
+                                    <input type="number" id="filterYearTo" placeholder="To (e.g. 2026)" min="1900" max="2026" aria-label="Year To">
                                 </div>
                             </div>
 
                             <!-- Minimum Rating -->
                             <div class="filter-group">
-                                <label>Minimum Rating: <span id="minRatingValDisplay">0.0</span> / 10</label>
+                                <label for="filterMinRating">Minimum Rating: <span id="minRatingValDisplay">0.0</span> / 10</label>
                                 <input type="range" id="filterMinRating" min="0" max="10" step="0.5" value="0">
                             </div>
                         </div>
@@ -287,7 +287,7 @@
                 <aside class="medialist-sidebar">
                     <div class="filter-box">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="listSearchInput" placeholder="Filter list...">
+                        <input type="text" id="listSearchInput" placeholder="Filter list..." aria-label="Filter media list">
                     </div>
                     <div class="list-category-group">
                         <div class="sidebar-heading">Lists</div>
@@ -299,7 +299,7 @@
                     </div>
                     <div class="list-category-group">
                         <div class="sidebar-heading">Filters</div>
-                        <select id="listFormatFilter" class="sidebar-select">
+                        <select id="listFormatFilter" class="sidebar-select" aria-label="Filter format">
                             <option value="all">Format: All</option>
                             <option value="Movie">Movie</option>
                             <option value="TV Show">TV Show</option>
@@ -311,8 +311,8 @@
                     <div class="list-header-bar">
                         <h2 id="currentListCategoryTitle">All Entries</h2>
                         <div class="view-toggle-btns">
-                            <button class="toggle-btn active"><i class="fa-solid fa-list"></i></button>
-                            <button class="toggle-btn"><i class="fa-solid fa-table-cells"></i></button>
+                            <button class="toggle-btn active" aria-label="List View"><i class="fa-solid fa-list"></i></button>
+                            <button class="toggle-btn" aria-label="Grid View"><i class="fa-solid fa-table-cells"></i></button>
                         </div>
                     </div>
 
@@ -600,7 +600,7 @@
     <!-- MEDIA DETAIL / EDIT ENTRY MODAL -->
     <div id="mediaModal" class="modal-backdrop">
         <div class="modal-container entry-modal">
-            <button id="modalCloseBtn" class="modal-close">&times;</button>
+            <button id="modalCloseBtn" class="modal-close" aria-label="Close modal">&times;</button>
             
             <div class="modal-header-banner" id="modalBanner">
                 <div class="banner-overlay"></div>
@@ -611,7 +611,7 @@
                         <span id="modalSubheading" class="modal-subheading">MOVIE · 2024</span>
                     </div>
                     <div class="modal-header-actions">
-                        <button type="button" id="modalFavoriteBtn" class="btn-icon-fav" title="Toggle Favorite">
+                        <button type="button" id="modalFavoriteBtn" class="btn-icon-fav" title="Toggle Favorite" aria-label="Toggle Favorite">
                             <i class="fa-regular fa-heart"></i>
                         </button>
                         <button type="button" id="modalSaveTopBtn" class="btn btn-primary btn-save-modal">Save</button>
@@ -624,7 +624,7 @@
                     <div class="form-main-fields">
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="modal-label">Status</label>
+                                <label for="entryStatus" class="modal-label">Status</label>
                                 <select id="entryStatus" class="modal-input-select">
                                     <option value="Watching">Watching</option>
                                     <option value="Plan to Watch" selected>Plan to Watch</option>
@@ -634,32 +634,32 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="modal-label">Score (0-10)</label>
+                                <label for="entryScore" class="modal-label">Score (0-10)</label>
                                 <input type="number" id="entryScore" class="modal-input" min="0" max="10" step="0.5" value="0">
                             </div>
                             <div class="form-group">
-                                <label class="modal-label">Episode Progress</label>
+                                <label for="entryProgress" class="modal-label">Episode Progress</label>
                                 <input type="number" id="entryProgress" class="modal-input" min="0" value="0">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label class="modal-label">Start Date</label>
+                                <label for="entryStartDate" class="modal-label">Start Date</label>
                                 <input type="date" id="entryStartDate" class="modal-input">
                             </div>
                             <div class="form-group">
-                                <label class="modal-label">Finish Date</label>
+                                <label for="entryFinishDate" class="modal-label">Finish Date</label>
                                 <input type="date" id="entryFinishDate" class="modal-input">
                             </div>
                             <div class="form-group">
-                                <label class="modal-label">Total Rewatches</label>
+                                <label for="entryRewatches" class="modal-label">Total Rewatches</label>
                                 <input type="number" id="entryRewatches" class="modal-input" min="0" value="0">
                             </div>
                         </div>
 
                         <div class="form-group full-width">
-                            <label class="modal-label">Notes</label>
+                            <label for="entryNotes" class="modal-label">Notes</label>
                             <textarea id="entryNotes" class="modal-textarea" placeholder="Add personal notes or review..."></textarea>
                         </div>
                     </div>
@@ -687,7 +687,7 @@
     <!-- AUTHENTICATION MODAL -->
     <div id="authModal" class="modal-backdrop">
         <div class="modal-container" style="max-width: 420px; height: auto; padding: 2rem; flex-direction: column;">
-            <button id="authModalCloseBtn" class="modal-close">&times;</button>
+            <button id="authModalCloseBtn" class="modal-close" aria-label="Close Auth Modal">&times;</button>
             
             <h2 id="authTitle" style="margin-bottom: 0.5rem; text-align: center;">Welcome to StreamHub</h2>
             <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-bottom: 1.5rem;">
@@ -696,17 +696,17 @@
 
             <form id="authForm" style="display: flex; flex-direction: column; gap: 1rem;">
                 <div id="usernameGroup" class="modal-section" style="display: none; margin-bottom: 0;">
-                    <label class="modal-label">USERNAME</label>
+                    <label for="authUsername" class="modal-label">USERNAME</label>
                     <input type="text" id="authUsername" placeholder="johndoe" class="search-bar" style="width: 100%; border-radius: 8px;">
                 </div>
 
                 <div class="modal-section" style="margin-bottom: 0;">
-                    <label class="modal-label">EMAIL</label>
+                    <label for="authEmail" class="modal-label">EMAIL</label>
                     <input type="email" id="authEmail" placeholder="user@example.com" required class="search-bar" style="width: 100%; border-radius: 8px;">
                 </div>
 
                 <div class="modal-section" style="margin-bottom: 0;">
-                    <label class="modal-label">PASSWORD</label>
+                    <label for="authPassword" class="modal-label">PASSWORD</label>
                     <input type="password" id="authPassword" placeholder="••••••••" required class="search-bar" style="width: 100%; border-radius: 8px;">
                 </div>
 
@@ -721,6 +721,6 @@
     </div>
 
     <!-- Main JavaScript File -->
-    <script src="index.js"></script>
+    <script src="index.js" defer></script>
 </body>
 </html>
