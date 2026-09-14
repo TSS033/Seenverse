@@ -31,7 +31,6 @@ let userEntries = {};
 let activeMediaData = null;
 let activeProfileTab = 'overview';
 let activeListFilter = 'all';
-let activeStatsFilter = 'all';
 
 // --- LOCAL STORAGE PERSISTENCE HELPERS ---
 function saveEntriesToLocalStorage() {
@@ -92,25 +91,21 @@ function updateProfileUI(user) {
 function updateProfileStats() {
     const entries = Object.values(userEntries);
     
-    // Total & Status Counts
     const totalMedia = entries.length;
     const completedMovies = entries.filter(e => e.type === 'Movie' && e.status === 'Completed').length;
     const tvTracked = entries.filter(e => e.type === 'TV Show' && e.status !== 'Dropped').length;
     
-    // Days Watched
     const totalHours = entries.reduce((acc, curr) => {
         const count = Number(curr.progress) || (curr.type === 'Movie' ? 1 : 10);
         return acc + (count * 2); 
     }, 0);
     const daysWatched = (totalHours / 24).toFixed(1);
 
-    // Mean Score
     const scoredEntries = entries.filter(e => Number(e.score) > 0);
     const meanScore = scoredEntries.length > 0 
         ? (scoredEntries.reduce((acc, curr) => acc + Number(curr.score), 0) / scoredEntries.length).toFixed(1)
         : '0.0';
 
-    // Update Profile Stat Boxes
     const statNums = document.querySelectorAll('.profile-stat-box .stat-num');
     if (statNums.length >= 3) {
         statNums[0].textContent = totalMedia;
@@ -118,7 +113,6 @@ function updateProfileStats() {
         statNums[2].textContent = meanScore;
     }
 
-    // Update Progress Bars
     const progressGroup = document.querySelectorAll('.stat-progress-group');
     if (progressGroup.length >= 2) {
         progressGroup[0].querySelector('.progress-info span:last-child').textContent = `${completedMovies} Completed`;
@@ -128,7 +122,6 @@ function updateProfileStats() {
         progressGroup[1].querySelector('.progress-bar-fill').style.width = `${Math.min(100, (tvTracked / 10) * 100)}%`;
     }
 
-    // Genre Breakdown Calculations
     const genreCounts = {};
     entries.forEach(item => {
         if (item.genres) {
@@ -149,7 +142,6 @@ function updateProfileStats() {
         `).join('');
     }
 
-    // Favorite Media Grid Update
     const favGrid = document.querySelector('.profile-media-mini-grid');
     const favorites = entries.filter(e => e.isFavorite);
     if (favGrid) {
@@ -222,65 +214,85 @@ function renderProfileSubView(tabName = activeProfileTab) {
     }
 }
 
-// --- STATS SUB-TAB & BUTTON CONTROLLER ---
-function initStatsSubTabs() {
-    document.addEventListener('click', (e) => {
-        // Handle genre, format, score, and hours category buttons inside stats section
-        const statTabBtn = e.target.closest('.stats-tab-btn, .stats-nav-btn, [data-stat-tab], [data-stats-tab], .stat-filter-btn');
-        if (statTabBtn) {
+// --- STATS INTERACTION & NAVIGATION CONTROLLER ---
+function initStatsTabControls() {
+    // 1. Sidebar Stats Buttons (.stats-side-btn: Overview, Genres, Formats)
+    document.querySelectorAll('.stats-side-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
-            const target = statTabBtn.getAttribute('data-stat-tab') || statTabBtn.getAttribute('data-stats-tab') || statTabBtn.getAttribute('data-target');
-            
-            document.querySelectorAll('.stats-tab-btn, .stats-nav-btn, [data-stat-tab], [data-stats-tab], .stat-filter-btn').forEach(b => b.classList.remove('active'));
-            statTabBtn.classList.add('active');
+            document.querySelectorAll('.stats-side-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-            if (target) {
-                activeStatsFilter = target;
-                filterOrScrollStatsSection(target);
+            const text = btn.textContent.trim().toLowerCase();
+            if (text === 'genres') {
+                const target = document.querySelector('.genre-chips-row') || document.getElementById('countryDonutContainer');
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (text === 'formats') {
+                const target = document.getElementById('formatDonutContainer');
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (text === 'overview') {
+                const target = document.querySelector('.stats-metrics-row');
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-            return;
-        }
+        });
+    });
 
-        // Handle direct stat card clicks (e.g. Days Watched, Mean Score, Total Titles)
-        const statBox = e.target.closest('.profile-stat-box');
-        if (statBox) {
-            const label = statBox.querySelector('.stat-label')?.textContent.toLowerCase() || '';
-            if (label.includes('score')) {
-                filterOrScrollStatsSection('scores');
-            } else if (label.includes('days') || label.includes('hours') || label.includes('watched')) {
-                filterOrScrollStatsSection('episodes');
-            } else if (label.includes('title') || label.includes('entries')) {
-                filterOrScrollStatsSection('formats');
+    // 2. Chart Toggle Pills (.pill-btn: Titles Watched, Hours Watched, Mean Score)
+    document.querySelectorAll('.chart-toggle-pills').forEach(pillGroup => {
+        pillGroup.addEventListener('click', (e) => {
+            const pillBtn = e.target.closest('.pill-btn');
+            if (!pillBtn) return;
+
+            e.preventDefault();
+            pillGroup.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+            pillBtn.classList.add('active');
+
+            const selectedMetric = pillBtn.textContent.trim();
+            const chartCard = pillBtn.closest('.chart-card');
+            if (chartCard) {
+                updateChartMetricView(chartCard, selectedMetric);
             }
-        }
+        });
+    });
+
+    // 3. Metric Pills Click Navigation (.metric-pill & .profile-stat-box)
+    document.querySelectorAll('.metric-pill, .profile-stat-box').forEach(pill => {
+        pill.addEventListener('click', () => {
+            const label = pill.querySelector('.metric-lbl, .stat-lbl')?.textContent.toLowerCase() || '';
+
+            // Switch to Stats Sub-Tab if currently in another profile tab
+            const statsTabBtn = document.querySelector('.profile-tab[data-profile-tab="stats"]');
+            if (statsTabBtn && activeProfileTab !== 'stats') {
+                statsTabBtn.click();
+            }
+
+            // Scroll to the corresponding metric chart
+            setTimeout(() => {
+                if (label.includes('score')) {
+                    document.getElementById('scoreChartContainer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (label.includes('episodes') || label.includes('watched') || label.includes('days') || label.includes('hours')) {
+                    document.getElementById('episodeCountChartContainer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (label.includes('titles') || label.includes('media')) {
+                    document.getElementById('releaseYearChart')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
+        });
     });
 }
 
-function filterOrScrollStatsSection(target) {
-    const subSections = document.querySelectorAll('.stats-sub-view, .stats-section-block');
-    
-    if (subSections.length > 0) {
-        subSections.forEach(sec => {
-            const secId = sec.id.toLowerCase();
-            const matches = secId.includes(target.toLowerCase());
-            sec.style.display = matches ? 'block' : 'none';
-        });
-    } else {
-        // Target chart containers directly for smooth scrolling view
-        let targetEl = null;
-        if (target.includes('genre')) {
-            targetEl = document.querySelector('.genre-chips-row') || document.getElementById('countryDonutContainer');
-        } else if (target.includes('format')) {
-            targetEl = document.getElementById('formatDonutContainer');
-        } else if (target.includes('score')) {
-            targetEl = document.getElementById('scoreChartContainer');
-        } else if (target.includes('episodes') || target.includes('hours') || target.includes('days')) {
-            targetEl = document.getElementById('episodeCountChartContainer') || document.getElementById('watchYearChart');
-        }
+function updateChartMetricView(chartCard, metricLabel) {
+    const chartContainer = chartCard.querySelector('.bar-chart-container, .line-chart-wrapper');
+    if (!chartContainer) return;
 
-        if (targetEl) {
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+    // Refresh rendering dynamically based on the selected metric mode
+    if (chartContainer.id === 'scoreChartContainer') {
+        renderScoreDistributionChart(metricLabel);
+    } else if (chartContainer.id === 'episodeCountChartContainer') {
+        renderEpisodeCountChart(metricLabel);
+    } else if (chartContainer.id === 'releaseYearChart') {
+        renderReleaseYearChart(metricLabel);
+    } else if (chartContainer.id === 'watchYearChart') {
+        renderWatchYearChart(metricLabel);
     }
 }
 
@@ -438,6 +450,127 @@ function createLineChartSVG(dataPoints) {
 }
 
 // --- 3. STATS PAGE CHARTS & METRICS ---
+function renderScoreDistributionChart(mode = 'Titles Watched') {
+    const scoreChart = document.getElementById('scoreChartContainer');
+    if (!scoreChart) return;
+
+    const entries = Object.values(userEntries);
+    const scoreCounts = Array(10).fill(0);
+
+    entries.forEach(e => {
+        const val = Math.round(Number(e.score));
+        if (val >= 1 && val <= 10) {
+            let mult = 1;
+            if (mode === 'Hours Watched') mult = (Number(e.progress) || 1) * 2;
+            else if (mode === 'Mean Score') mult = val;
+            scoreCounts[val - 1] += mult;
+        }
+    });
+
+    const maxCount = Math.max(...scoreCounts, 1);
+
+    scoreChart.innerHTML = scoreCounts.map((count, idx) => {
+        const heightPct = Math.round((count / maxCount) * 100);
+        return `
+            <div class="chart-bar-col">
+                <span class="bar-count-lbl">${count > 0 ? count : ''}</span>
+                <div class="bar-fill-inner" style="height: ${heightPct}%;"></div>
+                <span class="bar-x-lbl">${idx + 1}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderEpisodeCountChart(mode = 'Titles Watched') {
+    const epCountChart = document.getElementById('episodeCountChartContainer');
+    if (!epCountChart) return;
+
+    const entries = Object.values(userEntries);
+    const epRanges = [
+        { label: '1-12', min: 1, max: 12, count: 0 },
+        { label: '13-24', min: 13, max: 24, count: 0 },
+        { label: '25-50', min: 25, max: 50, count: 0 },
+        { label: '51-100', min: 51, max: 100, count: 0 },
+        { label: '100+', min: 101, max: Infinity, count: 0 }
+    ];
+
+    entries.forEach(e => {
+        const prog = Number(e.progress) || 0;
+        const r = epRanges.find(range => prog >= range.min && prog <= range.max);
+        if (r) {
+            let mult = 1;
+            if (mode === 'Hours Watched') mult = prog * 2;
+            else if (mode === 'Mean Score') mult = Number(e.score) || 1;
+            r.count += mult;
+        }
+    });
+
+    const maxEpCount = Math.max(...epRanges.map(r => r.count), 1);
+
+    epCountChart.innerHTML = epRanges.map(r => {
+        const heightPct = Math.round((r.count / maxEpCount) * 100);
+        return `
+            <div class="chart-bar-col">
+                <span class="bar-count-lbl">${r.count > 0 ? r.count : ''}</span>
+                <div class="bar-fill-inner" style="height: ${heightPct}%;"></div>
+                <span class="bar-x-lbl">${r.label}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderReleaseYearChart(mode = 'Titles Watched') {
+    const releaseYearContainer = document.getElementById('releaseYearChart');
+    if (!releaseYearContainer) return;
+
+    const entries = Object.values(userEntries);
+    const yearCounts = {};
+
+    entries.forEach(e => {
+        const y = e.year || (e.release_date ? e.release_date.split('-')[0] : '2024');
+        let val = 1;
+        if (mode === 'Hours Watched') val = (Number(e.progress) || 1) * 2;
+        else if (mode === 'Mean Score') val = Number(e.score) || 0;
+        yearCounts[y] = (yearCounts[y] || 0) + val;
+    });
+
+    const points = Object.keys(yearCounts).sort().map(y => ({ label: y, value: yearCounts[y] }));
+    const fallbackPoints = [
+        { label: '2020', value: 2 },
+        { label: '2021', value: 4 },
+        { label: '2022', value: 3 },
+        { label: '2023', value: 7 },
+        { label: '2024', value: 5 }
+    ];
+
+    releaseYearContainer.innerHTML = createLineChartSVG(points.length > 0 ? points : fallbackPoints);
+}
+
+function renderWatchYearChart(mode = 'Titles Watched') {
+    const watchYearContainer = document.getElementById('watchYearChart');
+    if (!watchYearContainer) return;
+
+    const entries = Object.values(userEntries);
+    const watchCounts = {};
+
+    entries.forEach(e => {
+        const wy = e.finishDate ? e.finishDate.split('-')[0] : '2024';
+        let val = 1;
+        if (mode === 'Hours Watched') val = (Number(e.progress) || 1) * 2;
+        else if (mode === 'Mean Score') val = Number(e.score) || 0;
+        watchCounts[wy] = (watchCounts[wy] || 0) + val;
+    });
+
+    const points = Object.keys(watchCounts).sort().map(y => ({ label: y, value: watchCounts[y] }));
+    const fallbackWatch = [
+        { label: '2022', value: 1 },
+        { label: '2023', value: 3 },
+        { label: '2024', value: 6 }
+    ];
+
+    watchYearContainer.innerHTML = createLineChartSVG(points.length > 0 ? points : fallbackWatch);
+}
+
 function renderStatsPage() {
     const entries = Object.values(userEntries);
 
@@ -454,61 +587,9 @@ function renderStatsPage() {
     if (document.getElementById('statDaysWatched')) document.getElementById('statDaysWatched').textContent = daysWatched;
     if (document.getElementById('statMeanScore')) document.getElementById('statMeanScore').textContent = meanScore;
 
-    // 1. Score Distribution Bar Chart
-    const scoreChart = document.getElementById('scoreChartContainer');
-    if (scoreChart) {
-        const scoreCounts = Array(10).fill(0);
-        entries.forEach(e => {
-            const val = Math.round(Number(e.score));
-            if (val >= 1 && val <= 10) scoreCounts[val - 1]++;
-        });
+    renderScoreDistributionChart();
+    renderEpisodeCountChart();
 
-        const maxCount = Math.max(...scoreCounts, 1);
-
-        scoreChart.innerHTML = scoreCounts.map((count, idx) => {
-            const heightPct = Math.round((count / maxCount) * 100);
-            return `
-                <div class="chart-bar-col">
-                    <span class="bar-count-lbl">${count > 0 ? count : ''}</span>
-                    <div class="bar-fill-inner" style="height: ${heightPct}%;"></div>
-                    <span class="bar-x-lbl">${idx + 1}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // 2. Episode Count Bar Chart
-    const epCountChart = document.getElementById('episodeCountChartContainer');
-    if (epCountChart) {
-        const epRanges = [
-            { label: '1-12', min: 1, max: 12, count: 0 },
-            { label: '13-24', min: 13, max: 24, count: 0 },
-            { label: '25-50', min: 25, max: 50, count: 0 },
-            { label: '51-100', min: 51, max: 100, count: 0 },
-            { label: '100+', min: 101, max: Infinity, count: 0 }
-        ];
-
-        entries.forEach(e => {
-            const prog = Number(e.progress) || 0;
-            const r = epRanges.find(range => prog >= range.min && prog <= range.max);
-            if (r) r.count++;
-        });
-
-        const maxEpCount = Math.max(...epRanges.map(r => r.count), 1);
-
-        epCountChart.innerHTML = epRanges.map(r => {
-            const heightPct = Math.round((r.count / maxEpCount) * 100);
-            return `
-                <div class="chart-bar-col">
-                    <span class="bar-count-lbl">${r.count > 0 ? r.count : ''}</span>
-                    <div class="bar-fill-inner" style="height: ${heightPct}%;"></div>
-                    <span class="bar-x-lbl">${r.label}</span>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // 3. Format Donut Distribution
     const formatContainer = document.getElementById('formatDonutContainer');
     if (formatContainer) {
         const movieCount = entries.filter(e => e.type === 'Movie').length;
@@ -521,7 +602,6 @@ function renderStatsPage() {
         formatContainer.innerHTML = donutRes.svgHtml + donutRes.legendHtml;
     }
 
-    // 4. Status Donut Distribution
     const statusContainer = document.getElementById('statusDonutContainer');
     if (statusContainer) {
         const statusData = [
@@ -534,7 +614,6 @@ function renderStatsPage() {
         statusContainer.innerHTML = donutRes.svgHtml + donutRes.legendHtml;
     }
 
-    // 5. Country Donut Distribution
     const countryContainer = document.getElementById('countryDonutContainer');
     if (countryContainer) {
         const countryData = [
@@ -546,41 +625,8 @@ function renderStatsPage() {
         countryContainer.innerHTML = donutRes.svgHtml + donutRes.legendHtml;
     }
 
-    // 6. Release Year Line Chart
-    const releaseYearContainer = document.getElementById('releaseYearChart');
-    if (releaseYearContainer) {
-        const yearCounts = {};
-        entries.forEach(e => {
-            const y = e.year || (e.release_date ? e.release_date.split('-')[0] : '2024');
-            yearCounts[y] = (yearCounts[y] || 0) + 1;
-        });
-        const points = Object.keys(yearCounts).sort().map(y => ({ label: y, value: yearCounts[y] }));
-        const fallbackPoints = [
-            { label: '2020', value: 2 },
-            { label: '2021', value: 4 },
-            { label: '2022', value: 3 },
-            { label: '2023', value: 7 },
-            { label: '2024', value: 5 }
-        ];
-        releaseYearContainer.innerHTML = createLineChartSVG(points.length > 0 ? points : fallbackPoints);
-    }
-
-    // 7. Watch Year Line Chart
-    const watchYearContainer = document.getElementById('watchYearChart');
-    if (watchYearContainer) {
-        const watchCounts = {};
-        entries.forEach(e => {
-            const wy = e.finishDate ? e.finishDate.split('-')[0] : '2024';
-            watchCounts[wy] = (watchCounts[wy] || 0) + 1;
-        });
-        const points = Object.keys(watchCounts).sort().map(y => ({ label: y, value: watchCounts[y] }));
-        const fallbackWatch = [
-            { label: '2022', value: 1 },
-            { label: '2023', value: 3 },
-            { label: '2024', value: 6 }
-        ];
-        watchYearContainer.innerHTML = createLineChartSVG(points.length > 0 ? points : fallbackWatch);
-    }
+    renderReleaseYearChart();
+    renderWatchYearChart();
 }
 
 // --- 4. PROFILE SOCIAL ROWS RENDERER ---
@@ -1062,14 +1108,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const authToggleText = document.getElementById('authToggleText');
     const usernameGroup = document.getElementById('usernameGroup');
 
-    // 1. Load LocalStorage Entries immediately on page load
+    // 1. Load LocalStorage Entries
     loadEntriesFromLocalStorage();
 
-    // 2. Initialize Sub-Tabs
+    // 2. Initialize Tab Controls
     initProfileSubTabs();
-    initStatsSubTabs();
+    initStatsTabControls();
 
-    // Restore active sub-tab if stored and trigger render
+    // Restore active sub-tab if stored
     const savedSubTab = localStorage.getItem('streamhub_activeProfileTab');
     if (savedSubTab) {
         activeProfileTab = savedSubTab;
