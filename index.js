@@ -32,6 +32,32 @@ let activeMediaData = null;
 let activeProfileTab = 'overview';
 let activeListFilter = 'all';
 
+// --- LOCAL STORAGE PERSISTENCE HELPERS ---
+function saveEntriesToLocalStorage() {
+    try {
+        localStorage.setItem('streamhub_userEntries', JSON.stringify(userEntries));
+    } catch (e) {
+        console.error("Failed to save entries to localStorage", e);
+    }
+}
+
+function loadEntriesFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('streamhub_userEntries');
+        if (saved) {
+            userEntries = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error("Failed to load entries from localStorage", e);
+    }
+}
+
+function saveViewState(viewId, filter = 'all') {
+    localStorage.setItem('streamhub_activeView', viewId);
+    localStorage.setItem('streamhub_activeFilter', filter);
+    localStorage.setItem('streamhub_activeProfileTab', activeProfileTab);
+}
+
 // --- HELPER FUNCTIONS ---
 function escapeHtml(str) {
     if (!str) return '';
@@ -70,7 +96,7 @@ function updateProfileStats() {
     const completedMovies = entries.filter(e => e.type === 'Movie' && e.status === 'Completed').length;
     const tvTracked = entries.filter(e => e.type === 'TV Show' && e.status !== 'Dropped').length;
     
-    // Days Watched (estimated hours converted to days)
+    // Days Watched
     const totalHours = entries.reduce((acc, curr) => {
         const count = Number(curr.progress) || (curr.type === 'Movie' ? 1 : 10);
         return acc + (count * 2); 
@@ -154,6 +180,7 @@ function initProfileSubTabs() {
             if (!targetTab) return;
 
             activeProfileTab = targetTab;
+            localStorage.setItem('streamhub_activeProfileTab', activeProfileTab);
 
             // Activate tab link
             profileTabs.forEach(t => t.classList.remove('active'));
@@ -201,17 +228,14 @@ function renderMediaListTable() {
 
     let entries = Object.values(userEntries);
 
-    // Apply Status Filter
     if (activeListFilter !== 'all') {
         entries = entries.filter(e => e.status === activeListFilter);
     }
 
-    // Apply Format Filter
     if (formatFilter !== 'all') {
         entries = entries.filter(e => e.type === formatFilter);
     }
 
-    // Apply Search Filter
     if (searchTerm) {
         entries = entries.filter(e => e.title.toLowerCase().includes(searchTerm));
     }
@@ -345,7 +369,6 @@ function createLineChartSVG(dataPoints) {
 function renderStatsPage() {
     const entries = Object.values(userEntries);
 
-    // Top Metrics Calculations
     const totalTitles = entries.length;
     const episodesWatched = entries.reduce((acc, curr) => acc + (Number(curr.progress) || 0), 0);
     const totalHours = entries.reduce((acc, curr) => acc + ((Number(curr.progress) || 1) * 2), 0);
@@ -359,7 +382,7 @@ function renderStatsPage() {
     if (document.getElementById('statDaysWatched')) document.getElementById('statDaysWatched').textContent = daysWatched;
     if (document.getElementById('statMeanScore')) document.getElementById('statMeanScore').textContent = meanScore;
 
-    // 1. Score Distribution Bar Chart (1-10 scores)
+    // 1. Score Distribution Bar Chart
     const scoreChart = document.getElementById('scoreChartContainer');
     if (scoreChart) {
         const scoreCounts = Array(10).fill(0);
@@ -488,9 +511,8 @@ function renderStatsPage() {
     }
 }
 
-// --- 4. PROFILE SOCIAL ROWS RENDERER (3 ROWS) ---
+// --- 4. PROFILE SOCIAL ROWS RENDERER ---
 function renderProfileSocialRows() {
-    // Row 1: Following
     const followingGrid = document.getElementById('followingUserGrid');
     const sampleFollowing = [
         { name: 'Sarah Jenkins', username: 'sjenkins', avatarColor: '#4f46e5' },
@@ -512,7 +534,6 @@ function renderProfileSocialRows() {
         `).join('');
     }
 
-    // Row 2: Followers
     const followersGrid = document.getElementById('followersUserGrid');
     const sampleFollowers = [
         { name: 'Elena Rostova', username: 'erostova', avatarColor: '#e06d53' }
@@ -533,7 +554,6 @@ function renderProfileSocialRows() {
         `).join('');
     }
 
-    // Row 3: User's Own Posts
     const userPostsFeed = document.getElementById('myUserPostsFeed');
     const username = currentUser?.user_metadata?.username || 'Guest User';
     const userPostsLbl = document.getElementById('userPostsCountLbl');
@@ -615,6 +635,7 @@ async function saveMediaEntry() {
     };
 
     userEntries[entry.id] = entry;
+    saveEntriesToLocalStorage(); // Save to localStorage
 
     if (supabaseClient && currentUser) {
         const { error } = await supabaseClient.from('watchlists').upsert([
@@ -643,6 +664,7 @@ async function deleteMediaEntry() {
     const id = String(activeMediaData.id || activeMediaData.title);
 
     delete userEntries[id];
+    saveEntriesToLocalStorage(); // Update localStorage
 
     if (supabaseClient && currentUser) {
         await supabaseClient.from('watchlists').delete().eq('user_id', currentUser.id).eq('media_id', id);
@@ -654,25 +676,33 @@ async function deleteMediaEntry() {
 }
 
 async function addToWatchlist(item) {
-    if (!supabaseClient) return;
-    if (!currentUser) return alert('Please log in to save items!');
+    const entry = {
+        id: String(item.id || item.title),
+        media_id: String(item.id || item.title),
+        title: item.title,
+        type: item.type || 'Movie',
+        poster_path: item.poster_path,
+        score: Number(item.rating) || 0,
+        status: 'Plan to Watch'
+    };
+    userEntries[entry.id] = entry;
+    saveEntriesToLocalStorage(); // Save locally
 
-    const { data, error } = await supabaseClient.from('watchlists').insert([
-        {
-            user_id: currentUser.id,
-            media_id: String(item.id || item.title),
-            title: item.title,
-            poster_path: item.poster_path,
-            media_type: item.type,
-            rating: Number(item.rating) || null
-        }
-    ]);
-
-    if (error) {
-        console.error('Error saving item:', error.message);
-    } else {
-        alert(`${item.title} added to your library!`);
+    if (supabaseClient && currentUser) {
+        await supabaseClient.from('watchlists').insert([
+            {
+                user_id: currentUser.id,
+                media_id: entry.media_id,
+                title: entry.title,
+                poster_path: entry.poster_path,
+                media_type: entry.type,
+                rating: Number(entry.score) || null
+            }
+        ]);
     }
+
+    updateProfileStats();
+    alert(`${item.title} added to your library!`);
 }
 
 async function fetchUserWatchlist(userId) {
@@ -696,6 +726,7 @@ async function fetchUserWatchlist(userId) {
                 notes: item.notes || ''
             };
         });
+        saveEntriesToLocalStorage(); // Merge Supabase items into localStorage
         updateProfileStats();
         renderProfileSubView(activeProfileTab);
     }
@@ -889,7 +920,6 @@ function openMediaModal(data) {
         banner.style.backgroundImage = `url('${bannerUrl}')`;
     }
 
-    // Populate Fields from Existing Entry or Defaults
     if (document.getElementById('entryStatus')) document.getElementById('entryStatus').value = existing.status || 'Plan to Watch';
     if (document.getElementById('entryScore')) document.getElementById('entryScore').value = existing.score || 0;
     if (document.getElementById('entryProgress')) document.getElementById('entryProgress').value = existing.progress || 0;
@@ -915,7 +945,38 @@ function closeMediaModal() {
     if (modal) modal.classList.remove('active');
 }
 
-// --- MAIN INITIALIZATION ---
+// --- MAIN INITIALIZATION & VIEW SWITCHER ---
+function switchView(targetId, filter = 'all') {
+    const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
+    const views = document.querySelectorAll(".view-section");
+
+    views.forEach(view => view.classList.remove("active"));
+    const targetView = document.getElementById(targetId);
+    if (targetView) targetView.classList.add("active");
+
+    saveViewState(targetId, filter);
+
+    navLinks.forEach(l => {
+        const matchesTarget = l.getAttribute("data-target") === targetId;
+        const linkFilter = l.getAttribute("data-filter") || 'all';
+        const isMatch = matchesTarget && (targetId !== 'homeView' || linkFilter === filter);
+        l.classList.toggle("active", isMatch);
+    });
+
+    if (targetId === 'homeView') {
+        activeFilter = filter;
+        fetchAndRenderMovies(filter);
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            const btnFilter = btn.getAttribute('data-filter') || 'all';
+            btn.classList.toggle('active', btnFilter === filter);
+        });
+    } else if (targetId === 'profileView') {
+        renderProfileSubView(activeProfileTab);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const avatarEl = document.querySelector('.avatar');
     const profileDropdown = document.getElementById('profileDropdown');
@@ -927,10 +988,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const authToggleText = document.getElementById('authToggleText');
     const usernameGroup = document.getElementById('usernameGroup');
 
-    // Profile Sub-Tabs Initialization
+    // 1. Load LocalStorage Entries immediately on page load
+    loadEntriesFromLocalStorage();
+
+    // 2. Initialize Sub-Tabs
     initProfileSubTabs();
 
-    // Media List Filtering Event Listeners
+    // Restore active sub-tab if stored
+    const savedSubTab = localStorage.getItem('streamhub_activeProfileTab');
+    if (savedSubTab) {
+        activeProfileTab = savedSubTab;
+        document.querySelectorAll('.profile-tab').forEach(tab => {
+            const t = tab.getAttribute('data-profile-tab');
+            tab.classList.toggle('active', t === activeProfileTab);
+        });
+        document.querySelectorAll('.profile-tab-content').forEach(c => {
+            c.classList.toggle('active', c.id === `tab-${activeProfileTab}`);
+        });
+    }
+
+    // 3. Setup Listeners
     document.querySelectorAll('.list-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.list-filter-btn').forEach(b => b.classList.remove('active'));
@@ -945,7 +1022,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('listSearchInput')?.addEventListener('input', renderMediaListTable);
     document.getElementById('listFormatFilter')?.addEventListener('change', renderMediaListTable);
 
-    // Modal Form Buttons
     document.getElementById('modalSaveTopBtn')?.addEventListener('click', saveMediaEntry);
     document.getElementById('entryDeleteBtn')?.addEventListener('click', deleteMediaEntry);
     
@@ -955,17 +1031,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (icon) icon.className = this.classList.contains('active') ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
     });
 
-    // 1. Supabase Auth State Change Listener
+    // Supabase Auth State Change Listener
     if (supabaseClient) {
         supabaseClient.auth.onAuthStateChange((event, session) => {
             currentUser = session ? session.user : null;
             if (currentUser) {
-                console.log('Active user authenticated:', currentUser.id);
                 if (avatarEl) avatarEl.textContent = getInitials(currentUser.email);
                 updateProfileUI(currentUser);
                 fetchUserWatchlist(currentUser.id);
             } else {
-                console.log('No user authenticated');
                 if (avatarEl) avatarEl.textContent = 'JS';
                 updateProfileUI(null);
                 if (profileDropdown) profileDropdown.classList.remove('active');
@@ -973,7 +1047,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 2. Auth & Dropdown Controls
+    // Auth & Profile Controls
     if (avatarEl) {
         avatarEl.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -997,23 +1071,10 @@ document.addEventListener("DOMContentLoaded", () => {
         switchView('profileView');
     });
 
-    document.getElementById('dropdownNotifications')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('Notifications coming soon!');
-        if (profileDropdown) profileDropdown.classList.remove('active');
-    });
-
-    document.getElementById('dropdownSettings')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        alert('Settings coming soon!');
-        if (profileDropdown) profileDropdown.classList.remove('active');
-    });
-
     if (authToggleBtn) {
         authToggleBtn.addEventListener('click', (e) => {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
-
             if (authTitle) authTitle.textContent = isSignUpMode ? 'Create Account' : 'Welcome to StreamHub';
             if (authSubmitBtn) authSubmitBtn.textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
             if (authToggleText) authToggleText.textContent = isSignUpMode ? 'Already have an account?' : "Don't have an account?";
@@ -1038,36 +1099,8 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 3. Navigation & View Switching
+    // Navigation Click Handlers
     const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
-    const views = document.querySelectorAll(".view-section");
-
-    function switchView(targetId, filter = 'all') {
-        views.forEach(view => view.classList.remove("active"));
-        const targetView = document.getElementById(targetId);
-        if (targetView) targetView.classList.add("active");
-
-        navLinks.forEach(l => {
-            const matchesTarget = l.getAttribute("data-target") === targetId;
-            const linkFilter = l.getAttribute("data-filter") || 'all';
-            const isMatch = matchesTarget && (targetId !== 'homeView' || linkFilter === filter);
-            l.classList.toggle("active", isMatch);
-        });
-
-        if (targetId === 'homeView') {
-            activeFilter = filter;
-            fetchAndRenderMovies(filter);
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                const btnFilter = btn.getAttribute('data-filter') || 'all';
-                btn.classList.toggle('active', btnFilter === filter);
-            });
-        } else if (targetId === 'profileView') {
-            renderProfileSubView(activeProfileTab);
-        }
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
     navLinks.forEach(link => {
         link.addEventListener("click", (e) => {
             e.preventDefault();
@@ -1077,14 +1110,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // 4. Global Event Delegation
+    // Delegation Handlers
     document.addEventListener('click', (e) => {
-        // Dismiss Profile Dropdown on Click Outside
         if (profileDropdown && !e.target.closest('.avatar-wrapper')) {
             profileDropdown.classList.remove('active');
         }
 
-        // Close Modals
         if (e.target.closest('#modalCloseBtn') || e.target.id === 'mediaModal') {
             closeMediaModal();
             return;
@@ -1095,47 +1126,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Category Filter Tabs
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
             const filter = filterBtn.getAttribute('data-filter') || 'all';
             activeFilter = filter;
-            
-            navLinks.forEach(l => {
-                const matchesTarget = l.getAttribute("data-target") === 'homeView';
-                const linkFilter = l.getAttribute("data-filter") || 'all';
-                l.classList.toggle("active", matchesTarget && linkFilter === filter);
-            });
-
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             filterBtn.classList.add('active');
             fetchAndRenderMovies(filter);
             return;
         }
 
-        // Follow Button
-        const followBtn = e.target.closest('.btn-follow');
-        if (followBtn) {
-            e.stopPropagation();
-            followBtn.classList.toggle('following');
-            followBtn.textContent = followBtn.classList.contains('following') ? 'Following' : 'Follow';
-            return;
-        }
-
-        // Like Button
-        const likeBtn = e.target.closest('.like-btn');
-        if (likeBtn) {
-            e.stopPropagation();
-            likeBtn.classList.toggle('liked');
-            const countEl = likeBtn.querySelector('.like-count');
-            if (countEl) {
-                let current = parseInt(countEl.textContent, 10) || 0;
-                countEl.textContent = likeBtn.classList.contains('liked') ? current + 1 : Math.max(0, current - 1);
-            }
-            return;
-        }
-
-        // Watchlist + Button (Direct Add)
         const actionCircle = e.target.closest('.action-circle');
         if (actionCircle) {
             e.stopPropagation();
@@ -1156,7 +1156,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Table Media Row Click -> Open Modal
         const mediaRowItem = e.target.closest('.media-row-item');
         if (mediaRowItem) {
             const id = mediaRowItem.dataset.id;
@@ -1167,7 +1166,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Open Detail Modal on Card Click
         const card = e.target.closest('.movie-card, .media-card');
         if (card) {
             openMediaModal({
@@ -1184,7 +1182,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 5. Initial Load
-    fetchAndRenderMovies('all');
+    // 4. Restore Saved View State on page load
+    const savedView = localStorage.getItem('streamhub_activeView') || 'homeView';
+    const savedFilter = localStorage.getItem('streamhub_activeFilter') || 'all';
+    
+    // Switch to restored view and load initial feed
+    switchView(savedView, savedFilter);
     initSocialData();
+    updateProfileStats();
 });
