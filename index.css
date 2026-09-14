@@ -40,6 +40,14 @@ body {
     margin-bottom: 1rem;
 }
 
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.text-cyan { 
+    color: #3db4f2 !important; 
+}
+
 /* --- Site Header Wrapper & Nav Fixes --- */
 .site-header {
     margin-bottom: 2rem;
@@ -340,7 +348,6 @@ nav {
     font-size: 0.85rem; 
 }
 
-/* Section Header Filter Controls */
 .filter-tabs {
     display: flex;
     gap: 0.4rem;
@@ -473,7 +480,7 @@ nav {
     width: 100%;
     background-color: var(--surface-color);
     display: flex;
-    justify-style: space-around;
+    justify-content: space-around;
     align-items: center;
     padding: 0.5rem 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -1232,18 +1239,18 @@ nav {
     background-color: var(--accent-color);
     border-radius: 3px;
 }
+
 /* --- PROFILE SUB-TAB TOGGLING & SLATE THEME --- */
 .profile-tab-content {
     display: none;
     margin-top: 1.5rem;
 }
+
 .profile-tab-content.active {
     display: block;
 }
 
-.text-cyan { color: #3db4f2 !important; }
-
-/* --- ANILIST MEDIA LIST TAB (IMAGE 1) --- */
+/* --- ANILIST MEDIA LIST TAB --- */
 .medialist-container {
     display: grid;
     grid-template-columns: 220px 1fr;
@@ -1410,7 +1417,7 @@ nav {
     border-radius: 4px;
 }
 
-/* --- FAVORITES TAB (IMAGE 2) --- */
+/* --- FAVORITES TAB --- */
 .favorites-section-card {
     background-color: var(--surface-color);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1436,7 +1443,7 @@ nav {
     cursor: pointer;
 }
 
-/* --- STATS TAB (IMAGES 3 & 4) --- */
+/* --- STATS TAB & CHARTS --- */
 .stats-layout {
     display: grid;
     grid-template-columns: 200px 1fr;
@@ -1500,7 +1507,7 @@ nav {
     color: var(--text-muted);
 }
 
-/* Bar Chart Graphic */
+/* Bar Charts (Score & Episode Count) */
 .chart-card {
     margin-bottom: 1.5rem;
 }
@@ -1510,6 +1517,36 @@ nav {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.25rem;
+}
+
+.chart-toggle-pills {
+    display: flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 3px;
+    border-radius: 16px;
+}
+
+.pill-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pill-btn:hover {
+    color: #fff;
+}
+
+.pill-btn.active {
+    background-color: #3db4f2;
+    color: #fff;
+    font-weight: 600;
 }
 
 .bar-chart-container {
@@ -1551,6 +1588,81 @@ nav {
     color: var(--text-muted);
 }
 
+/* 3-Column Donut Cards Layout */
+.distribution-cards-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+
+@media (max-width: 992px) {
+    .distribution-cards-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.donut-card {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.donut-card h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: #fff;
+}
+
+.donut-card-body {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+}
+
+.donut-chart-svg {
+    width: 90px;
+    height: 90px;
+    transform: rotate(-90deg);
+    flex-shrink: 0;
+}
+
+.donut-legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.legend-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.8rem;
+}
+
+.legend-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+.legend-badge {
+    color: #fff;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    min-width: 42px;
+    text-align: center;
+}
+
+/* Distribution Grid Fallback */
 .distribution-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1584,7 +1696,54 @@ nav {
     background-color: #3db4f2;
 }
 
-/* --- SOCIAL TAB (3 ROWS SPECIFIC REQUIREMENT) --- */
+/* Line Charts & Smooth Curves */
+.line-chart-wrapper {
+    width: 100%;
+    height: 200px;
+    position: relative;
+    margin-top: 1rem;
+}
+
+.line-chart-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.chart-line-path {
+    fill: none;
+    stroke: #3db4f2;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.chart-node {
+    fill: #3db4f2;
+    stroke: var(--surface-color, #161a23);
+    stroke-width: 3;
+    cursor: pointer;
+    transition: r 0.2s ease;
+}
+
+.chart-node:hover {
+    r: 7;
+}
+
+.chart-val-lbl {
+    fill: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-anchor: middle;
+}
+
+.chart-x-lbl {
+    fill: var(--text-muted);
+    font-size: 0.75rem;
+    text-anchor: middle;
+}
+
+/* --- SOCIAL TAB (3 ROWS) --- */
 .social-rows-container {
     display: flex;
     flex-direction: column;

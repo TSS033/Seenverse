@@ -303,6 +303,7 @@
                 </aside>
 
                 <main class="stats-main">
+                    <!-- Top Metrics Bar -->
                     <div class="stats-metrics-row">
                         <div class="metric-pill">
                             <i class="fa-solid fa-tv metric-icon"></i>
@@ -322,28 +323,90 @@
                         </div>
                     </div>
 
+                    <!-- 1. Score Distribution Bar Chart -->
                     <div class="profile-card chart-card">
                         <div class="chart-header">
                             <h3>Score Distribution</h3>
-                            <span class="muted-text">Frequency by Score (1-10)</span>
+                            <div class="chart-toggle-pills">
+                                <button class="pill-btn active">Titles Watched</button>
+                                <button class="pill-btn">Hours Watched</button>
+                                <button class="pill-btn">Mean Score</button>
+                            </div>
                         </div>
                         <div class="bar-chart-container" id="scoreChartContainer">
-                            <!-- Graph Bars Rendered dynamically via JS -->
+                            <!-- Populated dynamically via JS -->
                         </div>
                     </div>
 
-                    <div class="distribution-grid">
-                        <div class="profile-card">
-                            <h3>Status Distribution</h3>
-                            <div class="distribution-list" id="statusDistributionList">
-                                <!-- Rendered dynamically -->
+                    <!-- 2. Episode Count Bar Chart -->
+                    <div class="profile-card chart-card mt-4">
+                        <div class="chart-header">
+                            <h3>Episode Count</h3>
+                            <div class="chart-toggle-pills">
+                                <button class="pill-btn active">Titles Watched</button>
+                                <button class="pill-btn">Hours Watched</button>
+                                <button class="pill-btn">Mean Score</button>
                             </div>
                         </div>
-                        <div class="profile-card">
+                        <div class="bar-chart-container" id="episodeCountChartContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- 3. Distribution Row (3 Pie/Donut Cards: Format, Status, Country) -->
+                    <div class="distribution-cards-row mt-4">
+                        <!-- Format Distribution -->
+                        <div class="profile-card donut-card">
                             <h3>Format Distribution</h3>
-                            <div class="distribution-list" id="formatDistributionList">
-                                <!-- Rendered dynamically -->
+                            <div class="donut-card-body" id="formatDonutContainer">
+                                <!-- Populated dynamically via JS -->
                             </div>
+                        </div>
+
+                        <!-- Status Distribution -->
+                        <div class="profile-card donut-card">
+                            <h3>Status Distribution</h3>
+                            <div class="donut-card-body" id="statusDonutContainer">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Country Distribution -->
+                        <div class="profile-card donut-card">
+                            <h3>Country Distribution</h3>
+                            <div class="donut-card-body" id="countryDonutContainer">
+                                <!-- Populated dynamically via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Release Year Smooth Line Chart -->
+                    <div class="profile-card chart-card mt-4">
+                        <div class="chart-header">
+                            <h3>Release Year</h3>
+                            <div class="chart-toggle-pills">
+                                <button class="pill-btn active">Titles Watched</button>
+                                <button class="pill-btn">Hours Watched</button>
+                                <button class="pill-btn">Mean Score</button>
+                            </div>
+                        </div>
+                        <div class="line-chart-wrapper" id="releaseYearChart">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- 5. Watch Year Smooth Line Chart -->
+                    <div class="profile-card chart-card mt-4">
+                        <div class="chart-header">
+                            <h3>Watch Year</h3>
+                            <div class="chart-toggle-pills">
+                                <button class="pill-btn active">Titles Watched</button>
+                                <button class="pill-btn">Hours Watched</button>
+                                <button class="pill-btn">Mean Score</button>
+                            </div>
+                        </div>
+                        <div class="line-chart-wrapper" id="watchYearChart">
+                            <!-- Populated dynamically via JS -->
                         </div>
                     </div>
                 </main>
