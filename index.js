@@ -31,6 +31,7 @@ let userEntries = {};
 let activeMediaData = null;
 let activeProfileTab = 'overview';
 let activeListFilter = 'all';
+let activeStatsFilter = 'all';
 
 // --- LOCAL STORAGE PERSISTENCE HELPERS ---
 function saveEntriesToLocalStorage() {
@@ -148,7 +149,7 @@ function updateProfileStats() {
         `).join('');
     }
 
-    // Favorite Media Grid Update (with full dataset attributes restored)
+    // Favorite Media Grid Update
     const favGrid = document.querySelector('.profile-media-mini-grid');
     const favorites = entries.filter(e => e.isFavorite);
     if (favGrid) {
@@ -188,16 +189,13 @@ function initProfileSubTabs() {
             activeProfileTab = targetTab;
             localStorage.setItem('streamhub_activeProfileTab', activeProfileTab);
 
-            // Activate tab link
             profileTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
-            // Show corresponding content block
             tabContents.forEach(content => {
                 content.classList.toggle('active', content.id === `tab-${targetTab}`);
             });
 
-            // Refresh target view data
             renderProfileSubView(targetTab);
         });
     });
@@ -221,6 +219,68 @@ function renderProfileSubView(tabName = activeProfileTab) {
         default:
             updateProfileStats();
             break;
+    }
+}
+
+// --- STATS SUB-TAB & BUTTON CONTROLLER ---
+function initStatsSubTabs() {
+    document.addEventListener('click', (e) => {
+        // Handle genre, format, score, and hours category buttons inside stats section
+        const statTabBtn = e.target.closest('.stats-tab-btn, .stats-nav-btn, [data-stat-tab], [data-stats-tab], .stat-filter-btn');
+        if (statTabBtn) {
+            e.preventDefault();
+            const target = statTabBtn.getAttribute('data-stat-tab') || statTabBtn.getAttribute('data-stats-tab') || statTabBtn.getAttribute('data-target');
+            
+            document.querySelectorAll('.stats-tab-btn, .stats-nav-btn, [data-stat-tab], [data-stats-tab], .stat-filter-btn').forEach(b => b.classList.remove('active'));
+            statTabBtn.classList.add('active');
+
+            if (target) {
+                activeStatsFilter = target;
+                filterOrScrollStatsSection(target);
+            }
+            return;
+        }
+
+        // Handle direct stat card clicks (e.g. Days Watched, Mean Score, Total Titles)
+        const statBox = e.target.closest('.profile-stat-box');
+        if (statBox) {
+            const label = statBox.querySelector('.stat-label')?.textContent.toLowerCase() || '';
+            if (label.includes('score')) {
+                filterOrScrollStatsSection('scores');
+            } else if (label.includes('days') || label.includes('hours') || label.includes('watched')) {
+                filterOrScrollStatsSection('episodes');
+            } else if (label.includes('title') || label.includes('entries')) {
+                filterOrScrollStatsSection('formats');
+            }
+        }
+    });
+}
+
+function filterOrScrollStatsSection(target) {
+    const subSections = document.querySelectorAll('.stats-sub-view, .stats-section-block');
+    
+    if (subSections.length > 0) {
+        subSections.forEach(sec => {
+            const secId = sec.id.toLowerCase();
+            const matches = secId.includes(target.toLowerCase());
+            sec.style.display = matches ? 'block' : 'none';
+        });
+    } else {
+        // Target chart containers directly for smooth scrolling view
+        let targetEl = null;
+        if (target.includes('genre')) {
+            targetEl = document.querySelector('.genre-chips-row') || document.getElementById('countryDonutContainer');
+        } else if (target.includes('format')) {
+            targetEl = document.getElementById('formatDonutContainer');
+        } else if (target.includes('score')) {
+            targetEl = document.getElementById('scoreChartContainer');
+        } else if (target.includes('episodes') || target.includes('hours') || target.includes('days')) {
+            targetEl = document.getElementById('episodeCountChartContainer') || document.getElementById('watchYearChart');
+        }
+
+        if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 }
 
@@ -647,7 +707,7 @@ async function saveMediaEntry() {
     };
 
     userEntries[entry.id] = entry;
-    saveEntriesToLocalStorage(); // Save to localStorage
+    saveEntriesToLocalStorage();
 
     if (supabaseClient && currentUser) {
         const { error } = await supabaseClient.from('watchlists').upsert([
@@ -676,7 +736,7 @@ async function deleteMediaEntry() {
     const id = String(activeMediaData.id || activeMediaData.title);
 
     delete userEntries[id];
-    saveEntriesToLocalStorage(); // Update localStorage
+    saveEntriesToLocalStorage();
 
     if (supabaseClient && currentUser) {
         await supabaseClient.from('watchlists').delete().eq('user_id', currentUser.id).eq('media_id', id);
@@ -698,7 +758,7 @@ async function addToWatchlist(item) {
         status: 'Plan to Watch'
     };
     userEntries[entry.id] = entry;
-    saveEntriesToLocalStorage(); // Save locally
+    saveEntriesToLocalStorage();
 
     if (supabaseClient && currentUser) {
         await supabaseClient.from('watchlists').insert([
@@ -729,7 +789,6 @@ async function fetchUserWatchlist(userId) {
     } else if (data) {
         data.forEach(item => {
             const existing = userEntries[item.media_id] || {};
-            // Merge Supabase fields into local entries object without losing favorites or metadata
             userEntries[item.media_id] = {
                 ...existing,
                 id: item.media_id,
@@ -741,7 +800,7 @@ async function fetchUserWatchlist(userId) {
                 notes: item.notes || existing.notes || ''
             };
         });
-        saveEntriesToLocalStorage(); // Update localStorage with merged dataset
+        saveEntriesToLocalStorage();
         updateProfileStats();
         renderProfileSubView(activeProfileTab);
     }
@@ -1008,6 +1067,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 2. Initialize Sub-Tabs
     initProfileSubTabs();
+    initStatsSubTabs();
 
     // Restore active sub-tab if stored and trigger render
     const savedSubTab = localStorage.getItem('streamhub_activeProfileTab');
@@ -1202,7 +1262,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const savedView = localStorage.getItem('streamhub_activeView') || 'homeView';
     const savedFilter = localStorage.getItem('streamhub_activeFilter') || 'all';
     
-    // Switch to restored view and load initial feed
     switchView(savedView, savedFilter);
     initSocialData();
     updateProfileStats();
