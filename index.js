@@ -18,7 +18,7 @@ const supabaseClient = (typeof window.supabase !== 'undefined' && window.supabas
 // Mixed Dataset (Movies & TV Shows Fallback)
 const FALLBACK_MEDIA = [
     { id: '101', title: 'Blade Runner 2049', release_date: '2017-10-06', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop', overview: 'A young Blade Runner\'s discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.', genres: 'Sci-Fi · Drama' },
-    { id: '102', title: 'Cyberpunk: Edgerunners', release_date: '2022-09-13', vote_average: 8.3, type: 'TV Show', poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop', overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.', genres: 'Anime · Sci-Fi' },
+    { id: '102', title: 'Cyberpunk: Edgerunners', release_date: '2022-09-13', vote_average: 8.3, type: 'TV Show', totalEpisodes: 10, poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=1200&auto=format&fit=crop', overview: 'A street kid trying to survive in a technology and body modification-obsessed city of the future.', genres: 'Anime · Sci-Fi' },
     { id: '103', title: 'Dune: Part Two', release_date: '2024-03-01', vote_average: 8.5, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1200&auto=format&fit=crop', overview: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.', genres: 'Sci-Fi · Adventure' },
     { id: '104', title: 'The Matrix', release_date: '1999-03-31', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop', overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.', genres: 'Sci-Fi · Action' }
 ];
@@ -55,6 +55,15 @@ let searchState = {
     currentResults: []
 };
 
+// --- HELPER FUNCTION: GET EFFECTIVE PROGRESS ---
+function getEffectiveProgress(item) {
+    let prog = Number(item.progress) || 0;
+    if (prog === 0 && item.status === 'Completed') {
+        return item.type === 'Movie' ? 1 : (Number(item.totalEpisodes) || 12);
+    }
+    return prog;
+}
+
 // --- LOCAL STORAGE PERSISTENCE HELPERS ---
 function saveEntriesToLocalStorage() {
     try {
@@ -86,7 +95,7 @@ function normalizeString(str) {
     if (!str) return '';
     return String(str)
         .toLowerCase()
-        .replace(/[^a-z0-9]/g, ''); // Removes spaces, hyphens, and special characters
+        .replace(/[^a-z0-9]/g, '');
 }
 
 function escapeHtml(str) {
@@ -126,8 +135,8 @@ function updateProfileStats() {
     const tvTracked = entries.filter(e => e.type === 'TV Show' && e.status !== 'Dropped').length;
     
     const totalHours = entries.reduce((acc, curr) => {
-        const count = Number(curr.progress) || (curr.type === 'Movie' ? 1 : 10);
-        return acc + (count * 2); 
+        const count = getEffectiveProgress(curr);
+        return acc + (count * (curr.type === 'Movie' ? 2 : 0.75)); 
     }, 0);
     const daysWatched = (totalHours / 24).toFixed(1);
 
@@ -279,7 +288,6 @@ function switchStatsSubSection(subName) {
 
 // --- STATS INTERACTION & NAVIGATION CONTROLLER ---
 function initStatsTabControls() {
-    // 1. Sidebar Stats Buttons (Movies & TV Shows Sub-Sections)
     document.querySelectorAll('.stats-side-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -288,7 +296,6 @@ function initStatsTabControls() {
         });
     });
 
-    // 2. Genre Sorting Pills (Movies vs TV Shows)
     document.querySelectorAll('.genres-pill-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -311,7 +318,6 @@ function initStatsTabControls() {
         });
     });
 
-    // 3. Chart Toggle Pills (.pill-btn: Titles Watched, Hours Watched, Mean Score)
     document.querySelectorAll('.chart-toggle-pills').forEach(pillGroup => {
         pillGroup.addEventListener('click', (e) => {
             const pillBtn = e.target.closest('.pill-btn');
@@ -329,18 +335,15 @@ function initStatsTabControls() {
         });
     });
 
-    // 4. Metric Pills Click Navigation (.metric-pill & .profile-stat-box)
     document.querySelectorAll('.metric-pill, .profile-stat-box').forEach(pill => {
         pill.addEventListener('click', () => {
             const label = pill.querySelector('.metric-lbl, .stat-lbl')?.textContent.toLowerCase() || '';
 
-            // Switch to Stats Sub-Tab if currently in another profile tab
             const statsTabBtn = document.querySelector('.profile-tab[data-profile-tab="stats"]');
             if (statsTabBtn && activeProfileTab !== 'stats') {
                 statsTabBtn.click();
             }
 
-            // Scroll to the corresponding metric chart
             setTimeout(() => {
                 if (label.includes('score')) {
                     document.getElementById('movieScoreChartContainer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -372,7 +375,7 @@ function updateChartMetricView(chartCard, metricLabel) {
     }
 }
 
-// --- GENRES PAGE RENDERER (SEPARATED FOR MOVIES & TV SHOWS) ---
+// --- GENRES PAGE RENDERER ---
 function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
     const gridId = mediaType === 'movie' ? 'movieGenresCardsGrid' : 'tvGenresCardsGrid';
     const grid = document.getElementById(gridId);
@@ -397,7 +400,7 @@ function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
                         genreMap[gName].totalScore += Number(item.score);
                         genreMap[gName].scoreCount += 1;
                     }
-                    const hrs = (Number(item.progress) || 1) * 2;
+                    const hrs = (item.type === 'TV Show') ? (getEffectiveProgress(item) * 0.75) : 2;
                     genreMap[gName].hours += hrs;
                     if (item.poster_path && !genreMap[gName].posters.includes(item.poster_path)) {
                         genreMap[gName].posters.unshift(item.poster_path);
@@ -407,7 +410,7 @@ function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
         });
 
         data = Object.values(genreMap).map(g => {
-            const totalHours = g.hours;
+            const totalHours = Math.round(g.hours);
             const days = Math.floor(totalHours / 24);
             const hours = totalHours % 24;
             const score = g.scoreCount > 0 ? (g.totalScore / g.scoreCount) * 10 : 70;
@@ -462,7 +465,7 @@ function renderMovieStats() {
     const movies = Object.values(userEntries).filter(e => e.type === 'Movie');
 
     const totalMovies = movies.length;
-    const totalHours = movies.reduce((acc, curr) => acc + 2, 0); 
+    const totalHours = movies.reduce((acc, curr) => acc + (getEffectiveProgress(curr) > 0 ? 2 : 2), 0); 
     const daysWatched = (totalHours / 24).toFixed(1);
 
     const scored = movies.filter(e => Number(e.score) > 0);
@@ -506,8 +509,10 @@ function renderTvStats() {
     const tvShows = Object.values(userEntries).filter(e => e.type === 'TV Show');
 
     const totalShows = tvShows.length;
-    const episodesWatched = tvShows.reduce((acc, curr) => acc + (Number(curr.progress) || 0), 0);
-    const totalHours = episodesWatched * 1;
+    
+    // Automatically fallback to totalEpisodes (or 12) if marked Completed with 0 typed progress
+    const episodesWatched = tvShows.reduce((acc, curr) => acc + getEffectiveProgress(curr), 0);
+    const totalHours = episodesWatched * 0.75; // Approx 45 mins per episode
     const daysWatched = (totalHours / 24).toFixed(1);
 
     const scored = tvShows.filter(e => Number(e.score) > 0);
@@ -557,8 +562,10 @@ function renderScoreChart(containerId, entries, mode = 'Titles Watched') {
         const val = Math.round(Number(e.score));
         if (val >= 1 && val <= 10) {
             let mult = 1;
-            if (mode === 'Hours Watched') mult = (Number(e.progress) || 1) * 2;
-            else if (mode === 'Mean Score') mult = val;
+            if (mode === 'Hours Watched') {
+                const prog = getEffectiveProgress(e);
+                mult = e.type === 'Movie' ? 2 : (prog * 0.75);
+            } else if (mode === 'Mean Score') mult = val;
             scoreCounts[val - 1] += mult;
         }
     });
@@ -566,7 +573,7 @@ function renderScoreChart(containerId, entries, mode = 'Titles Watched') {
     const maxCount = Math.max(...scoreCounts, 1);
     container.innerHTML = scoreCounts.map((count, idx) => `
         <div class="chart-bar-col">
-            <span class="bar-count-lbl">${count > 0 ? count : ''}</span>
+            <span class="bar-count-lbl">${count > 0 ? (mode === 'Hours Watched' ? Math.round(count) : count) : ''}</span>
             <div class="bar-fill-inner" style="height: ${Math.round((count / maxCount) * 100)}%;"></div>
             <span class="bar-x-lbl">${idx + 1}</span>
         </div>
@@ -586,11 +593,11 @@ function renderEpisodeCountChart(containerId, entries, mode = 'Titles Watched') 
     ];
 
     entries.forEach(e => {
-        const prog = Number(e.progress) || 0;
+        const prog = getEffectiveProgress(e);
         const r = epRanges.find(range => prog >= range.min && prog <= range.max);
         if (r) {
             let mult = 1;
-            if (mode === 'Hours Watched') mult = prog * 2;
+            if (mode === 'Hours Watched') mult = Math.round(prog * 0.75);
             else if (mode === 'Mean Score') mult = Number(e.score) || 1;
             r.count += mult;
         }
@@ -614,7 +621,7 @@ function renderReleaseYearChart(containerId, entries, mode = 'Titles Watched') {
     entries.forEach(e => {
         const y = e.year || (e.release_date ? e.release_date.split('-')[0] : '2024');
         let val = 1;
-        if (mode === 'Hours Watched') val = (Number(e.progress) || 1) * 2;
+        if (mode === 'Hours Watched') val = Math.round(getEffectiveProgress(e) * (e.type === 'Movie' ? 2 : 0.75));
         else if (mode === 'Mean Score') val = Number(e.score) || 0;
         yearCounts[y] = (yearCounts[y] || 0) + val;
     });
@@ -639,7 +646,7 @@ function renderWatchYearChart(containerId, entries, mode = 'Titles Watched') {
     entries.forEach(e => {
         const wy = e.finishDate ? e.finishDate.split('-')[0] : '2024';
         let val = 1;
-        if (mode === 'Hours Watched') val = (Number(e.progress) || 1) * 2;
+        if (mode === 'Hours Watched') val = Math.round(getEffectiveProgress(e) * (e.type === 'Movie' ? 2 : 0.75));
         else if (mode === 'Mean Score') val = Number(e.score) || 0;
         watchCounts[wy] = (watchCounts[wy] || 0) + val;
     });
@@ -735,7 +742,6 @@ function renderStatsPage() {
     renderMovieStats();
     renderTvStats();
 
-    // Default active section switch
     const activeSideBtn = document.querySelector('.stats-side-btn.active');
     const defaultSub = activeSideBtn ? activeSideBtn.getAttribute('data-stats-sub') : 'movie-overview';
     switchStatsSubSection(defaultSub);
@@ -777,7 +783,7 @@ function renderMediaListTable() {
                 </div>
             </td>
             <td class="text-center font-weight-600 text-cyan">${item.score > 0 ? item.score : '-'}</td>
-            <td class="text-center muted-text">${item.progress || 0} / ${item.type === 'Movie' ? '1' : '12'}</td>
+            <td class="text-center muted-text">${getEffectiveProgress(item)} / ${item.type === 'Movie' ? '1' : (item.totalEpisodes || '12')}</td>
             <td class="text-center muted-text">${escapeHtml(item.type)}</td>
         </tr>
     `).join('');
@@ -916,6 +922,15 @@ async function saveMediaEntry() {
     if (!activeMediaData) return;
 
     const favBtn = document.getElementById('modalFavoriteBtn');
+    const statusVal = document.getElementById('entryStatus')?.value || 'Plan to Watch';
+    let progressVal = Number(document.getElementById('entryProgress')?.value) || 0;
+    const totalEps = Number(activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12);
+
+    // If marked Completed and progress is 0, auto-fill full progress
+    if (statusVal === 'Completed' && progressVal === 0) {
+        progressVal = activeMediaData.type === 'Movie' ? 1 : totalEps;
+    }
+
     const entry = {
         id: String(activeMediaData.id || activeMediaData.title),
         media_id: String(activeMediaData.id || activeMediaData.title),
@@ -924,9 +939,10 @@ async function saveMediaEntry() {
         poster_path: activeMediaData.poster_path || activeMediaData.posterUrl,
         backdrop_path: activeMediaData.backdrop_path || activeMediaData.backdropUrl || '',
         genres: activeMediaData.genres || 'Sci-Fi',
-        status: document.getElementById('entryStatus')?.value || 'Plan to Watch',
+        status: statusVal,
         score: document.getElementById('entryScore')?.value || 0,
-        progress: document.getElementById('entryProgress')?.value || 0,
+        progress: progressVal,
+        totalEpisodes: totalEps,
         startDate: document.getElementById('entryStartDate')?.value || '',
         finishDate: document.getElementById('entryFinishDate')?.value || '',
         rewatches: document.getElementById('entryRewatches')?.value || 0,
@@ -984,7 +1000,9 @@ async function addToWatchlist(item) {
         type: item.type || 'Movie',
         poster_path: item.poster_path,
         score: Number(item.rating) || 0,
-        status: 'Plan to Watch'
+        status: 'Plan to Watch',
+        progress: 0,
+        totalEpisodes: item.totalEpisodes || 12
     };
     userEntries[entry.id] = entry;
     saveEntriesToLocalStorage();
@@ -1056,6 +1074,7 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
                     release_date: isMovie ? item.release_date : item.first_air_date,
                     vote_average: item.vote_average,
                     type: isMovie ? 'Movie' : 'TV Show',
+                    totalEpisodes: isMovie ? 1 : 12,
                     poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
                     backdrop_path: item.backdrop_path ? (API_CONFIG.BACKDROP_BASE + item.backdrop_path) : '',
                     overview: item.overview || 'No description available.',
@@ -1109,13 +1128,13 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
 function initSearchControls() {
     const filterPanel = document.getElementById('advancedFilterPanel');
     const filterToggleBtn = document.getElementById('filterToggleBtn');
+    const searchForm = document.getElementById('globalSearchForm');
     const searchInput = document.getElementById('globalSearchInput');
     const searchSubmitBtn = document.getElementById('globalSearchSubmitBtn');
     const minRatingSlider = document.getElementById('filterMinRating');
     const minRatingDisplay = document.getElementById('minRatingValDisplay');
     const sortSelect = document.getElementById('sortResultsSelect');
 
-    // 1. Toggle Filter Panel Dropdown
     filterToggleBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         filterPanel?.classList.toggle('active');
@@ -1131,7 +1150,6 @@ function initSearchControls() {
         filterPanel?.classList.remove('active');
     });
 
-    // 2. Multi-genre Selection Chips
     document.querySelectorAll('#filterGenreChips .chip-option').forEach(chip => {
         chip.addEventListener('click', () => {
             chip.classList.toggle('selected');
@@ -1144,15 +1162,18 @@ function initSearchControls() {
         });
     });
 
-    // 3. Min Rating Live Label
     minRatingSlider?.addEventListener('input', (e) => {
         if (minRatingDisplay) minRatingDisplay.textContent = Number(e.target.value).toFixed(1);
     });
 
-    // 4. Trigger Search on Button Click or Enter Key
-    searchSubmitBtn?.addEventListener('click', triggerSearchExecution);
-    searchInput?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') triggerSearchExecution();
+    searchForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        triggerSearchExecution();
+    });
+
+    searchSubmitBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        triggerSearchExecution();
     });
 
     document.getElementById('applyFiltersBtn')?.addEventListener('click', () => {
@@ -1160,7 +1181,6 @@ function initSearchControls() {
         triggerSearchExecution();
     });
 
-    // 5. Reset Filters Button
     document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
         searchState.selectedGenres = [];
         searchState.yearFrom = null;
@@ -1175,7 +1195,6 @@ function initSearchControls() {
         updateFilterIndicator();
     });
 
-    // 6. Sort Selector Listener
     sortSelect?.addEventListener('change', (e) => {
         searchState.sortBy = e.target.value;
         if (searchState.currentResults.length > 0) {
@@ -1210,7 +1229,6 @@ async function triggerSearchExecution() {
 
     let rawMediaList = [];
 
-    // Fetch from TMDB API if query exists
     if (queryInput.length > 0) {
         try {
             const endpoint = `${API_CONFIG.BASE_URL}/search/multi?api_key=${API_CONFIG.KEY}&query=${encodeURIComponent(queryInput)}`;
@@ -1226,6 +1244,7 @@ async function triggerSearchExecution() {
                         release_date: isMovie ? item.release_date : item.first_air_date,
                         vote_average: item.vote_average || 0,
                         type: isMovie ? 'Movie' : 'TV Show',
+                        totalEpisodes: isMovie ? 1 : 12,
                         poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
                         backdrop_path: item.backdrop_path ? (API_CONFIG.BACKDROP_BASE + item.backdrop_path) : '',
                         overview: item.overview || 'No overview available.',
@@ -1238,23 +1257,21 @@ async function triggerSearchExecution() {
         }
     }
 
-    // Merge API results or fallback dataset with existing user library entries
     if (rawMediaList.length === 0) {
         const localArray = Object.values(userEntries);
         rawMediaList = localArray.length > 0 ? localArray : FALLBACK_MEDIA;
     }
 
-    // --- FUZZY MATCHING WITH WEIGHTED FUSE.JS ENGINE ---
     let filteredList = rawMediaList;
 
     if (searchState.query) {
         if (typeof Fuse !== 'undefined') {
             const fuseOptions = {
                 includeScore: true,
-                threshold: 0.35,        // 0.35 provides balanced typo tolerance
-                distance: 100,          // Distance to search within titles
+                threshold: 0.35,
+                distance: 100,
                 minMatchCharLength: 2,
-                ignoreLocation: true,   // Matches anywhere in the title
+                ignoreLocation: true,
                 keys: [
                     { name: 'title', weight: 0.8 },
                     { name: 'genres', weight: 0.2 }
@@ -1265,24 +1282,19 @@ async function triggerSearchExecution() {
             const fuseResults = fuse.search(searchState.query);
             filteredList = fuseResults.map(res => res.item);
         } else {
-            // Fallback normalized substring check if Fuse library fails to load
             const queryNorm = normalizeString(searchState.query);
             filteredList = rawMediaList.filter(item => normalizeString(item.title).includes(queryNorm));
         }
     }
 
-    // Apply Secondary Filters (Min Rating, Year Range, Selected Genres)
     filteredList = filteredList.filter(item => {
-        // Rating Match
         const rating = Number(item.vote_average || item.score || 0);
         if (rating < searchState.minRating) return false;
 
-        // Year Match
         const releaseYear = parseInt(item.release_date ? item.release_date.split('-')[0] : item.year) || 0;
         if (searchState.yearFrom && releaseYear < searchState.yearFrom) return false;
         if (searchState.yearTo && releaseYear > searchState.yearTo) return false;
 
-        // Genre Match
         if (searchState.selectedGenres.length > 0 && item.genres) {
             const itemGenres = item.genres.split('·').map(g => g.trim());
             const hasMatchingGenre = searchState.selectedGenres.some(g => itemGenres.includes(g));
@@ -1479,9 +1491,18 @@ function openMediaModal(data) {
         banner.style.backgroundImage = `url('${bannerUrl}')`;
     }
 
-    if (document.getElementById('entryStatus')) document.getElementById('entryStatus').value = existing.status || 'Plan to Watch';
+    const effectiveStatus = existing.status || 'Plan to Watch';
+    let effectiveProgress = existing.progress !== undefined ? existing.progress : 0;
+    const totalEps = Number(data.totalEpisodes || existing.totalEpisodes || 12);
+
+    // If marked Completed and progress is 0, auto-populate full progress in UI
+    if (effectiveStatus === 'Completed' && effectiveProgress === 0) {
+        effectiveProgress = data.type === 'Movie' ? 1 : totalEps;
+    }
+
+    if (document.getElementById('entryStatus')) document.getElementById('entryStatus').value = effectiveStatus;
     if (document.getElementById('entryScore')) document.getElementById('entryScore').value = existing.score || 0;
-    if (document.getElementById('entryProgress')) document.getElementById('entryProgress').value = existing.progress || 0;
+    if (document.getElementById('entryProgress')) document.getElementById('entryProgress').value = effectiveProgress;
     if (document.getElementById('entryStartDate')) document.getElementById('entryStartDate').value = existing.startDate || '';
     if (document.getElementById('entryFinishDate')) document.getElementById('entryFinishDate').value = existing.finishDate || '';
     if (document.getElementById('entryRewatches')) document.getElementById('entryRewatches').value = existing.rewatches || 0;
@@ -1547,15 +1568,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const authToggleText = document.getElementById('authToggleText');
     const usernameGroup = document.getElementById('usernameGroup');
 
-    // 1. Load LocalStorage Entries
     loadEntriesFromLocalStorage();
 
-    // 2. Initialize Tab & Search Controls
     initProfileSubTabs();
     initStatsTabControls();
     initSearchControls();
 
-    // Restore active sub-tab if stored
+    // Auto-fill episode progress input when selecting "Completed" status in modal
+    document.getElementById('entryStatus')?.addEventListener('change', (e) => {
+        if (e.target.value === 'Completed' && activeMediaData) {
+            const progInput = document.getElementById('entryProgress');
+            if (progInput && (Number(progInput.value) === 0 || !progInput.value)) {
+                progInput.value = activeMediaData.type === 'Movie' ? 1 : (activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12);
+            }
+        }
+    });
+
     const savedSubTab = localStorage.getItem('streamhub_activeProfileTab');
     if (savedSubTab) {
         activeProfileTab = savedSubTab;
@@ -1569,7 +1597,6 @@ document.addEventListener("DOMContentLoaded", () => {
         renderProfileSubView(activeProfileTab);
     }
 
-    // 3. Setup Listeners
     document.querySelectorAll('.list-filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.list-filter-btn').forEach(b => b.classList.remove('active'));
@@ -1593,7 +1620,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (icon) icon.className = this.classList.contains('active') ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
     });
 
-    // Supabase Auth State Change Listener
     if (supabaseClient) {
         supabaseClient.auth.onAuthStateChange((event, session) => {
             currentUser = session ? session.user : null;
@@ -1609,7 +1635,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Auth & Profile Controls
     if (avatarEl) {
         avatarEl.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1661,7 +1686,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Navigation Click Handlers
     const navLinks = document.querySelectorAll(".nav-links a, .mobile-nav-link");
     navLinks.forEach(link => {
         link.addEventListener("click", (e) => {
@@ -1672,7 +1696,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Delegation Handlers
     document.addEventListener('click', (e) => {
         if (profileDropdown && !e.target.closest('.avatar-wrapper')) {
             profileDropdown.classList.remove('active');
@@ -1712,7 +1735,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     title: card.dataset.title,
                     poster_path: card.querySelector('img')?.src,
                     type: card.dataset.type,
-                    rating: card.dataset.rating
+                    rating: card.dataset.rating,
+                    totalEpisodes: card.dataset.type === 'Movie' ? 1 : 12
                 });
             }
             return;
@@ -1739,12 +1763,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 overview: card.dataset.overview || 'Overview details...',
                 genres: card.dataset.genres || 'Sci-Fi',
                 poster_path: card.querySelector('img')?.src || '',
-                backdrop_path: card.dataset.backdrop || card.querySelector('img')?.src || ''
+                backdrop_path: card.dataset.backdrop || card.querySelector('img')?.src || '',
+                totalEpisodes: card.dataset.type === 'Movie' ? 1 : 12
             });
         }
     });
 
-    // 4. Restore Saved View State on page load
     const savedView = localStorage.getItem('streamhub_activeView') || 'homeView';
     const savedFilter = localStorage.getItem('streamhub_activeFilter') || 'all';
     
