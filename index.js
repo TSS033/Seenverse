@@ -349,6 +349,8 @@ function updateChartMetricView(chartCard, metricLabel) {
         renderEpisodeCountChart(chartContainer.id, entries, metricLabel);
     } else if (chartContainer.id === 'movieReleaseYearChart' || chartContainer.id === 'tvReleaseYearChart') {
         renderReleaseYearChart(chartContainer.id, entries, metricLabel);
+    } else if (chartContainer.id === 'movieWatchYearChart' || chartContainer.id === 'tvWatchYearChart') {
+        renderWatchYearChart(chartContainer.id, entries, metricLabel);
     }
 }
 
@@ -478,6 +480,7 @@ function renderMovieStats() {
     }
 
     renderReleaseYearChart('movieReleaseYearChart', movies);
+    renderWatchYearChart('movieWatchYearChart', movies);
 }
 
 // --- TV SHOW STATS RENDERER ---
@@ -523,6 +526,7 @@ function renderTvStats() {
     }
 
     renderReleaseYearChart('tvReleaseYearChart', tvShows);
+    renderWatchYearChart('tvWatchYearChart', tvShows);
 }
 
 // --- SHARED CHART HELPERS ---
