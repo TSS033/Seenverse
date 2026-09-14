@@ -23,6 +23,16 @@ const FALLBACK_MEDIA = [
     { id: '104', title: 'The Matrix', release_date: '1999-03-31', vote_average: 8.7, type: 'Movie', poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop', backdrop_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1200&auto=format&fit=crop', overview: 'A computer hacker learns from mysterious rebels about the true nature of his reality.', genres: 'Sci-Fi · Action' }
 ];
 
+// Baseline Genre Data (Matching UI design)
+const BASE_GENRES = [
+    { name: 'Action', count: 328, score: 72.14, days: 123, hours: 15, posters: ['https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop'] },
+    { name: 'Fantasy', count: 289, score: 70.75, days: 105, hours: 3, posters: ['https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=200&auto=format&fit=crop'] },
+    { name: 'Adventure', count: 218, score: 70.91, days: 99, hours: 19, posters: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop'] },
+    { name: 'Comedy', count: 162, score: 69.26, days: 71, hours: 6, posters: ['https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop'] },
+    { name: 'Drama', count: 117, score: 73.40, days: 56, hours: 13, posters: ['https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop'] },
+    { name: 'Supernatural', count: 85, score: 73.55, days: 40, hours: 13, posters: ['https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=200&auto=format&fit=crop', 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=200&auto=format&fit=crop'] }
+];
+
 // --- STATE MANAGEMENT ---
 let activeFilter = 'all';
 let currentUser = null;
@@ -31,6 +41,7 @@ let userEntries = {};
 let activeMediaData = null;
 let activeProfileTab = 'overview';
 let activeListFilter = 'all';
+let currentGenreSort = 'count';
 
 // --- LOCAL STORAGE PERSISTENCE HELPERS ---
 function saveEntriesToLocalStorage() {
@@ -214,30 +225,57 @@ function renderProfileSubView(tabName = activeProfileTab) {
     }
 }
 
+// --- STATS SUB-SECTION SWITCHER ---
+function switchStatsSubSection(subName) {
+    const sideBtns = document.querySelectorAll('.stats-side-btn');
+    sideBtns.forEach(btn => {
+        const matches = btn.getAttribute('data-stats-sub') === subName || 
+                        btn.textContent.trim().toLowerCase() === subName.toLowerCase();
+        btn.classList.toggle('active', matches);
+    });
+
+    const sections = document.querySelectorAll('.stats-sub-section');
+    sections.forEach(sec => {
+        sec.style.display = 'none';
+    });
+
+    if (subName === 'genres') {
+        const genreSec = document.getElementById('statsGenresSection');
+        if (genreSec) genreSec.style.display = 'block';
+        renderGenresStatsGrid(currentGenreSort);
+    } else if (subName === 'formats') {
+        const formatSec = document.getElementById('statsFormatsSection');
+        if (formatSec) formatSec.style.display = 'block';
+    } else {
+        const overviewSec = document.getElementById('statsOverviewSection');
+        if (overviewSec) overviewSec.style.display = 'block';
+    }
+}
+
 // --- STATS INTERACTION & NAVIGATION CONTROLLER ---
 function initStatsTabControls() {
-    // 1. Sidebar Stats Buttons (.stats-side-btn: Overview, Genres, Formats)
+    // 1. Sidebar Stats Buttons (Overview, Genres, Formats)
     document.querySelectorAll('.stats-side-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
-            document.querySelectorAll('.stats-side-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            const text = btn.textContent.trim().toLowerCase();
-            if (text === 'genres') {
-                const target = document.querySelector('.genre-chips-row') || document.getElementById('countryDonutContainer');
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else if (text === 'formats') {
-                const target = document.getElementById('formatDonutContainer');
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else if (text === 'overview') {
-                const target = document.querySelector('.stats-metrics-row');
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            const sub = btn.getAttribute('data-stats-sub') || btn.textContent.trim().toLowerCase();
+            switchStatsSubSection(sub);
         });
     });
 
-    // 2. Chart Toggle Pills (.pill-btn: Titles Watched, Hours Watched, Mean Score)
+    // 2. Genre Page Sorting Pills (Count, Mean Score, Time Watched)
+    document.querySelectorAll('.genres-pill-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.genres-pill-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            currentGenreSort = btn.getAttribute('data-sort') || 'count';
+            renderGenresStatsGrid(currentGenreSort);
+        });
+    });
+
+    // 3. Chart Toggle Pills (.pill-btn: Titles Watched, Hours Watched, Mean Score)
     document.querySelectorAll('.chart-toggle-pills').forEach(pillGroup => {
         pillGroup.addEventListener('click', (e) => {
             const pillBtn = e.target.closest('.pill-btn');
@@ -255,7 +293,7 @@ function initStatsTabControls() {
         });
     });
 
-    // 3. Metric Pills Click Navigation (.metric-pill & .profile-stat-box)
+    // 4. Metric Pills Click Navigation (.metric-pill & .profile-stat-box)
     document.querySelectorAll('.metric-pill, .profile-stat-box').forEach(pill => {
         pill.addEventListener('click', () => {
             const label = pill.querySelector('.metric-lbl, .stat-lbl')?.textContent.toLowerCase() || '';
@@ -284,7 +322,6 @@ function updateChartMetricView(chartCard, metricLabel) {
     const chartContainer = chartCard.querySelector('.bar-chart-container, .line-chart-wrapper');
     if (!chartContainer) return;
 
-    // Refresh rendering dynamically based on the selected metric mode
     if (chartContainer.id === 'scoreChartContainer') {
         renderScoreDistributionChart(metricLabel);
     } else if (chartContainer.id === 'episodeCountChartContainer') {
@@ -294,6 +331,73 @@ function updateChartMetricView(chartCard, metricLabel) {
     } else if (chartContainer.id === 'watchYearChart') {
         renderWatchYearChart(metricLabel);
     }
+}
+
+// --- GENRES PAGE RENDERER (SCREENSHOT EXACT MATCH) ---
+function renderGenresStatsGrid(sortBy = 'count') {
+    const grid = document.getElementById('genresCardsGrid');
+    if (!grid) return;
+
+    let data = BASE_GENRES.map(g => ({ ...g, posters: [...g.posters] }));
+
+    // Merge real User Watchlist entries into Genre Stats
+    const entries = Object.values(userEntries);
+    entries.forEach(item => {
+        if (item.genres) {
+            item.genres.split('·').forEach(gStr => {
+                const gName = gStr.trim();
+                let found = data.find(d => d.name.toLowerCase() === gName.toLowerCase());
+                if (!found) {
+                    found = { name: gName, count: 0, score: 70.0, days: 2, hours: 4, posters: [] };
+                    data.push(found);
+                }
+                found.count += 1;
+                if (item.poster_path && !found.posters.includes(item.poster_path)) {
+                    found.posters.unshift(item.poster_path);
+                }
+            });
+        }
+    });
+
+    // Sorting Logic
+    if (sortBy === 'score') {
+        data.sort((a, b) => b.score - a.score);
+    } else if (sortBy === 'time') {
+        data.sort((a, b) => (b.days * 24 + b.hours) - (a.days * 24 + a.hours));
+    } else {
+        data.sort((a, b) => b.count - a.count);
+    }
+
+    grid.innerHTML = data.map((genre, idx) => {
+        const rank = idx + 1;
+        const postersHtml = genre.posters.slice(0, 4).map(p => `<img src="${p}" alt="${escapeHtml(genre.name)}">`).join('');
+
+        return `
+            <div class="genre-card">
+                <div class="genre-card-header">
+                    <h3>${escapeHtml(genre.name)}</h3>
+                    <span class="genre-rank-badge">${rank}</span>
+                </div>
+                <div class="genre-card-stats">
+                    <div class="genre-stat">
+                        <div class="genre-stat-val">${genre.count}</div>
+                        <div class="genre-stat-lbl">Count</div>
+                    </div>
+                    <div class="genre-stat">
+                        <div class="genre-stat-val">${genre.score.toFixed(genre.score % 1 === 0 ? 0 : 2)}%</div>
+                        <div class="genre-stat-lbl">Mean Score</div>
+                    </div>
+                    <div class="genre-stat">
+                        <div class="genre-stat-val">${genre.days} days ${genre.hours} hours</div>
+                        <div class="genre-stat-lbl">Time Watched</div>
+                    </div>
+                </div>
+                <div class="genre-card-posters">
+                    ${postersHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // --- 1. MEDIA LIST TABLE RENDERER ---
@@ -627,6 +731,7 @@ function renderStatsPage() {
 
     renderReleaseYearChart();
     renderWatchYearChart();
+    renderGenresStatsGrid(currentGenreSort);
 }
 
 // --- 4. PROFILE SOCIAL ROWS RENDERER ---
