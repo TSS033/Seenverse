@@ -119,66 +119,7 @@
         </div>
 
         <div id="madeForYouGrid" class="movie-grid">
-            <!-- Fallback static cards if TMDB API key is not supplied -->
-            <div class="movie-card" data-title="The Matrix" data-year="1999" data-type="Movie" data-rating="8.7" data-overview="A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers." data-genres="Sci-Fi · Action">
-                <div class="poster-wrapper">
-                    <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=500&auto=format&fit=crop" alt="The Matrix">
-                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.7</div>
-                    <div class="status-badge">COMPLETED</div>
-                </div>
-                <div class="movie-info">
-                    <div>
-                        <div class="movie-title">The Matrix</div>
-                        <div class="movie-meta">1999 · Movie</div>
-                    </div>
-                    <div class="action-circle"><i class="fa-solid fa-check"></i></div>
-                </div>
-            </div>
-
-            <div class="movie-card" data-title="Cyberpunk: Edgerunners" data-year="2022" data-type="TV Show" data-rating="8.3" data-overview="A street kid trying to survive in a technology and body modification-obsessed city of the future." data-genres="Anime · Sci-Fi">
-                <div class="poster-wrapper">
-                    <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=500&auto=format&fit=crop" alt="Cyberpunk: Edgerunners">
-                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.3</div>
-                    <div class="status-badge">WATCHING</div>
-                </div>
-                <div class="movie-info">
-                    <div>
-                        <div class="movie-title">Edgerunners</div>
-                        <div class="movie-meta">2022 · Anime</div>
-                    </div>
-                    <div class="action-circle"><i class="fa-solid fa-play"></i></div>
-                </div>
-            </div>
-
-            <div class="movie-card" data-title="Interstellar" data-year="2014" data-type="Movie" data-rating="8.6" data-overview="When Earth becomes uninhabitable, a team of ex-NASA pilots travels through a wormhole in search of a new home." data-genres="Sci-Fi · Drama">
-                <div class="poster-wrapper">
-                    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=500&auto=format&fit=crop" alt="Interstellar">
-                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.6</div>
-                    <div class="status-badge">PLAN TO WATCH</div>
-                </div>
-                <div class="movie-info">
-                    <div>
-                        <div class="movie-title">Interstellar</div>
-                        <div class="movie-meta">2014 · Movie</div>
-                    </div>
-                    <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
-                </div>
-            </div>
-
-            <div class="movie-card" data-title="Dune: Part One" data-year="2021" data-type="Movie" data-rating="8.0" data-overview="A noble family becomes embroiled in a war for control over the galaxy's most valuable asset while its heir is haunted by visions of a dark future." data-genres="Sci-Fi · Adventure">
-                <div class="poster-wrapper">
-                    <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=500&auto=format&fit=crop" alt="Dune">
-                    <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.0</div>
-                    <div class="status-badge">PLAN TO WATCH</div>
-                </div>
-                <div class="movie-info">
-                    <div>
-                        <div class="movie-title">Dune: Part One</div>
-                        <div class="movie-meta">2021 · Movie</div>
-                    </div>
-                    <div class="action-circle"><i class="fa-solid fa-plus"></i></div>
-                </div>
-            </div>
+            <!-- Dynamic cards fetched via JavaScript -->
         </div>
     </section>
 
@@ -195,59 +136,6 @@
             <!-- Main Feed -->
             <div id="socialFeed" class="social-feed">
                 <!-- Static Fallback Activity Cards -->
-                <div class="feed-card">
-                    <div class="feed-header">
-                        <div class="user-avatar avatar-orange">ER</div>
-                        <div class="user-meta">
-                            <span class="user-name">Elena Rostova</span>
-                            <span class="user-handle">@erostova · 2h ago</span>
-                        </div>
-                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
-                    </div>
-                    <div class="feed-content">
-                        <p class="activity-text">
-                            Finished watching and loved every second of it! <span class="rating-highlight"><i class="fa-solid fa-star"></i> 9.0/10</span>
-                        </p>
-                        <div class="media-card" data-title="Cyberpunk: Edgerunners" data-year="2022" data-type="TV Show" data-rating="9.0" data-overview="A street kid trying to survive in a technology and body modification-obsessed city." data-genres="Anime · Sci-Fi">
-                            <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop" alt="Cyberpunk: Edgerunners">
-                            <div class="media-info">
-                                <h4>Cyberpunk: Edgerunners</h4>
-                                <p>2022 · Anime</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feed-actions">
-                        <button class="action-btn like-btn"><i class="fa-regular fa-heart"></i> <span class="like-count">14</span></button>
-                        <button class="action-btn comment-btn"><i class="fa-regular fa-comment"></i> 3</button>
-                    </div>
-                </div>
-
-                <div class="feed-card">
-                    <div class="feed-header">
-                        <div class="user-avatar avatar-purple">MC</div>
-                        <div class="user-meta">
-                            <span class="user-name">Marcus Chen</span>
-                            <span class="user-handle">@mchen · 5h ago</span>
-                        </div>
-                        <button class="more-btn"><i class="fa-solid fa-ellipsis"></i></button>
-                    </div>
-                    <div class="feed-content">
-                        <p class="activity-text">
-                            Added to library plan to watch list.
-                        </p>
-                        <div class="media-card" data-title="Interstellar" data-year="2014" data-type="Movie" data-rating="8.6" data-overview="When Earth becomes uninhabitable, a team of ex-NASA pilots travels through a wormhole in search of a new home." data-genres="Sci-Fi · Drama">
-                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300&auto=format&fit=crop" alt="Interstellar">
-                            <div class="media-info">
-                                <h4>Interstellar</h4>
-                                <p>2014 · Movie</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feed-actions">
-                        <button class="action-btn like-btn"><i class="fa-regular fa-heart"></i> <span class="like-count">8</span></button>
-                        <button class="action-btn comment-btn"><i class="fa-regular fa-comment"></i> 1</button>
-                    </div>
-                </div>
             </div>
 
             <!-- Sidebar -->
@@ -255,180 +143,252 @@
                 <div class="sidebar-card">
                     <h3>People to Follow</h3>
                     <ul id="followList" class="follow-list">
-                        <li class="follow-item">
-                            <div class="user-avatar avatar-teal">SJ</div>
-                            <div class="user-meta">
-                                <span class="user-name">Sarah Jenkins</span>
-                                <span class="user-sub">12 mutuals</span>
-                            </div>
-                            <button class="btn-follow">Follow</button>
-                        </li>
-                        <li class="follow-item">
-                            <div class="user-avatar avatar-indigo">DK</div>
-                            <div class="user-meta">
-                                <span class="user-name">David Kim</span>
-                                <span class="user-sub">5 mutuals</span>
-                            </div>
-                            <button class="btn-follow following">Following</button>
-                        </li>
+                        <!-- Populated via JS -->
                     </ul>
                 </div>
             </aside>
         </div>
     </section>
-<!-- VIEW 3: PROFILE PAGE -->
-<section id="profileView" class="view-section">
-    <!-- Profile Banner & Header -->
-    <div class="profile-banner-wrapper">
-        <div class="profile-banner"></div>
-        <div class="profile-header-content">
-            <div class="profile-avatar-container">
-                <div class="profile-avatar-lg">JS</div>
-            </div>
-            <div class="profile-user-info">
-                <div class="profile-username-row">
-                    <h1 id="profileUsername">JohnDoe</h1>
-                    <span class="profile-badge">PRO MEMBER</span>
-                </div>
-            </div>
-            <button class="btn btn-secondary profile-action-btn">
-                <i class="fa-solid fa-gear"></i> Edit Profile
-            </button>
-        </div>
-        
-        <!-- Profile Navigation Tabs -->
-        <div class="profile-nav-tabs">
-            <a href="#" class="profile-tab active">Overview</a>
-            <a href="#" class="profile-tab">Watchlist</a>
-            <a href="#" class="profile-tab">Favorites</a>
-            <a href="#" class="profile-tab">Stats</a>
-            <a href="#" class="profile-tab">Social</a>
-            <a href="#" class="profile-tab">Reviews</a>
-        </div>
-    </div>
 
-    <!-- Profile Grid Layout -->
-    <div class="profile-grid">
-        <!-- Main Left Column -->
-        <div class="profile-main">
+    <!-- VIEW 3: PROFILE PAGE -->
+    <section id="profileView" class="view-section">
+        <!-- Profile Banner & Header -->
+        <div class="profile-banner-wrapper">
+            <div class="profile-banner"></div>
+            <div class="profile-header-content">
+                <div class="profile-avatar-container">
+                    <div class="profile-avatar-lg">JS</div>
+                </div>
+                <div class="profile-user-info">
+                    <div class="profile-username-row">
+                        <h1 id="profileUsername">JohnDoe</h1>
+                        <span class="profile-badge">PRO MEMBER</span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary profile-action-btn">
+                    <i class="fa-solid fa-gear"></i> Edit Profile
+                </button>
+            </div>
             
-            <!-- Genre Overview -->
-            <div class="profile-card">
-                <h3>Genre Overview</h3>
-                <div class="genre-chips-row">
-                    <div class="genre-chip" style="--chip-color: #10b981;">
-                        <span class="chip-label">Sci-Fi</span>
-                        <span class="chip-count">48 Entries</span>
-                    </div>
-                    <div class="genre-chip" style="--chip-color: #ff6b4a;">
-                        <span class="chip-label">Action</span>
-                        <span class="chip-count">32 Entries</span>
-                    </div>
-                    <div class="genre-chip" style="--chip-color: #6366f1;">
-                        <span class="chip-label">Drama</span>
-                        <span class="chip-count">24 Entries</span>
-                    </div>
-                    <div class="genre-chip" style="--chip-color: #ec4899;">
-                        <span class="chip-label">Anime</span>
-                        <span class="chip-count">18 Entries</span>
-                    </div>
-                    <div class="genre-chip" style="--chip-color: #f59e0b;">
-                        <span class="chip-label">Adventure</span>
-                        <span class="chip-count">12 Entries</span>
-                    </div>
-                </div>
-                <!-- Visual Genre Bar -->
-                <div class="genre-distribution-bar">
-                    <span style="width: 36%; background-color: #10b981;"></span>
-                    <span style="width: 24%; background-color: #ff6b4a;"></span>
-                    <span style="width: 18%; background-color: #6366f1;"></span>
-                    <span style="width: 13%; background-color: #ec4899;"></span>
-                    <span style="width: 9%; background-color: #f59e0b;"></span>
-                </div>
-            </div>
-
-            <!-- Favorite / Top Movies Grid -->
-            <div class="profile-card">
-                <div class="section-header" style="margin-bottom: 1rem;">
-                    <h3>Favorite Media</h3>
-                    <a href="#">View All</a>
-                </div>
-                <div class="movie-grid profile-media-mini-grid">
-                    <div class="movie-card">
-                        <div class="poster-wrapper">
-                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300&auto=format&fit=crop" alt="Blade Runner 2049">
-                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 9.5</div>
-                        </div>
-                        <div class="movie-title">Blade Runner 2049</div>
-                    </div>
-                    <div class="movie-card">
-                        <div class="poster-wrapper">
-                            <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=300&auto=format&fit=crop" alt="Edgerunners">
-                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 9.0</div>
-                        </div>
-                        <div class="movie-title">Edgerunners</div>
-                    </div>
-                    <div class="movie-card">
-                        <div class="poster-wrapper">
-                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=300&auto=format&fit=crop" alt="Dune">
-                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.8</div>
-                        </div>
-                        <div class="movie-title">Dune: Part Two</div>
-                    </div>
-                    <div class="movie-card">
-                        <div class="poster-wrapper">
-                            <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=300&auto=format&fit=crop" alt="The Matrix">
-                            <div class="rating-badge"><i class="fa-solid fa-star"></i> 8.7</div>
-                        </div>
-                        <div class="movie-title">The Matrix</div>
-                    </div>
-                </div>
-            </div>
-
+            <!-- Profile Navigation Sub-Tabs -->
+            <nav class="profile-nav-tabs">
+                <a href="#" class="profile-tab active" data-profile-tab="overview">Overview</a>
+                <a href="#" class="profile-tab" data-profile-tab="medialist">Media List</a>
+                <a href="#" class="profile-tab" data-profile-tab="favorites">Favorites</a>
+                <a href="#" class="profile-tab" data-profile-tab="stats">Stats</a>
+                <a href="#" class="profile-tab" data-profile-tab="social">Social</a>
+            </nav>
         </div>
 
-        <!-- Right Stats Column -->
-        <div class="profile-sidebar">
-            <div class="profile-card">
-                <h3>Watch Statistics</h3>
-                <div class="profile-stats-grid">
-                    <div class="profile-stat-box">
-                        <span class="stat-num">134</span>
-                        <span class="stat-lbl">Total Media</span>
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="profile-tab-content active">
+            <div class="profile-grid">
+                <div class="profile-main">
+                    <div class="profile-card">
+                        <h3>Genre Overview</h3>
+                        <div class="genre-chips-row">
+                            <div class="genre-chip"><span class="chip-label">Sci-Fi</span><span class="chip-count">0 Entries</span></div>
+                        </div>
+                        <div class="genre-distribution-bar">
+                            <span style="width: 100%; background-color: var(--accent-color);"></span>
+                        </div>
                     </div>
-                    <div class="profile-stat-box">
-                        <span class="stat-num">14.2</span>
-                        <span class="stat-lbl">Days Watched</span>
-                    </div>
-                    <div class="profile-stat-box">
-                        <span class="stat-num">8.4</span>
-                        <span class="stat-lbl">Mean Score</span>
+
+                    <div class="profile-card">
+                        <h3>Favorites</h3>
+                        <div class="movie-grid profile-media-mini-grid">
+                            <p class="muted-text">No favorites added yet.</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="stat-progress-group">
-                    <div class="progress-info">
-                        <span>Completed Movies</span>
-                        <span>92 / 100</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: 92%;"></div>
-                    </div>
-                </div>
-
-                <div class="stat-progress-group">
-                    <div class="progress-info">
-                        <span>TV Series Tracked</span>
-                        <span>42 / 50</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width: 84%; background-color: #6366f1;"></div>
+                <div class="profile-sidebar">
+                    <div class="profile-card">
+                        <h3>User Stats</h3>
+                        <div class="profile-stats-grid">
+                            <div class="profile-stat-box"><span class="stat-num">0</span><span class="stat-lbl">Total Media</span></div>
+                            <div class="profile-stat-box"><span class="stat-num">0.0</span><span class="stat-lbl">Days Watched</span></div>
+                            <div class="profile-stat-box"><span class="stat-num">0.0</span><span class="stat-lbl">Mean Score</span></div>
+                        </div>
+                        <div class="stat-progress-group">
+                            <div class="progress-info"><span>Movies</span><span>0 Completed</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+                        </div>
+                        <div class="stat-progress-group">
+                            <div class="progress-info"><span>TV Shows</span><span>0 Tracked</span></div>
+                            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+
+        <!-- TAB 2: MEDIA LIST (TABLE VIEW) -->
+        <div id="tab-medialist" class="profile-tab-content">
+            <div class="medialist-container">
+                <aside class="medialist-sidebar">
+                    <div class="filter-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="listSearchInput" placeholder="Filter list...">
+                    </div>
+                    <div class="list-category-group">
+                        <div class="sidebar-heading">Lists</div>
+                        <button class="list-filter-btn active" data-status-filter="all">All</button>
+                        <button class="list-filter-btn" data-status-filter="Watching">Watching</button>
+                        <button class="list-filter-btn" data-status-filter="Completed">Completed</button>
+                        <button class="list-filter-btn" data-status-filter="Plan to Watch">Planning</button>
+                        <button class="list-filter-btn" data-status-filter="Dropped">Dropped</button>
+                    </div>
+                    <div class="list-category-group">
+                        <div class="sidebar-heading">Filters</div>
+                        <select id="listFormatFilter" class="sidebar-select">
+                            <option value="all">Format: All</option>
+                            <option value="Movie">Movie</option>
+                            <option value="TV Show">TV Show</option>
+                        </select>
+                    </div>
+                </aside>
+
+                <main class="medialist-main">
+                    <div class="list-header-bar">
+                        <h2 id="currentListCategoryTitle">All Entries</h2>
+                        <div class="view-toggle-btns">
+                            <button class="toggle-btn active"><i class="fa-solid fa-list"></i></button>
+                            <button class="toggle-btn"><i class="fa-solid fa-table-cells"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="anilist-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th class="text-center">Score</th>
+                                    <th class="text-center">Progress</th>
+                                    <th class="text-center">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mediaListTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center muted-text py-4">No media added to your list yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- TAB 3: FAVORITES -->
+        <div id="tab-favorites" class="profile-tab-content">
+            <div class="favorites-section-card">
+                <div class="favorites-header">
+                    <h3>Movies & TV Shows</h3>
+                    <button class="btn-reorder"><i class="fa-solid fa-arrow-down-up-across-line"></i> Reorder</button>
+                </div>
+                <div class="movie-grid favorites-grid" id="favoritesFullGrid">
+                    <p class="muted-text">No favorite media added yet. Open a title and click the heart icon to save it here!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: STATS -->
+        <div id="tab-stats" class="profile-tab-content">
+            <div class="stats-layout">
+                <aside class="stats-sidebar">
+                    <div class="sidebar-heading">Media Stats</div>
+                    <button class="stats-side-btn active">Overview</button>
+                    <button class="stats-side-btn">Genres</button>
+                    <button class="stats-side-btn">Formats</button>
+                </aside>
+
+                <main class="stats-main">
+                    <div class="stats-metrics-row">
+                        <div class="metric-pill">
+                            <i class="fa-solid fa-tv metric-icon"></i>
+                            <div><div class="metric-val" id="statTotalTitles">0</div><div class="metric-lbl">Total Titles</div></div>
+                        </div>
+                        <div class="metric-pill">
+                            <i class="fa-solid fa-play metric-icon"></i>
+                            <div><div class="metric-val" id="statEpisodesWatched">0</div><div class="metric-lbl">Episodes Watched</div></div>
+                        </div>
+                        <div class="metric-pill">
+                            <i class="fa-solid fa-clock metric-icon"></i>
+                            <div><div class="metric-val" id="statDaysWatched">0.0</div><div class="metric-lbl">Days Watched</div></div>
+                        </div>
+                        <div class="metric-pill">
+                            <i class="fa-solid fa-star metric-icon"></i>
+                            <div><div class="metric-val" id="statMeanScore">0.0</div><div class="metric-lbl">Mean Score</div></div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card chart-card">
+                        <div class="chart-header">
+                            <h3>Score Distribution</h3>
+                            <span class="muted-text">Frequency by Score (1-10)</span>
+                        </div>
+                        <div class="bar-chart-container" id="scoreChartContainer">
+                            <!-- Graph Bars Rendered dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <div class="distribution-grid">
+                        <div class="profile-card">
+                            <h3>Status Distribution</h3>
+                            <div class="distribution-list" id="statusDistributionList">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                        <div class="profile-card">
+                            <h3>Format Distribution</h3>
+                            <div class="distribution-list" id="formatDistributionList">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- TAB 5: SOCIAL (3 DISTINCT ROWS) -->
+        <div id="tab-social" class="profile-tab-content">
+            <div class="social-rows-container">
+                <!-- Row 1: Following -->
+                <div class="profile-card social-row-card">
+                    <div class="social-row-header">
+                        <h3><i class="fa-solid fa-user-plus text-cyan"></i> Following</h3>
+                        <span class="muted-text" id="followingCountLbl">0 Users</span>
+                    </div>
+                    <div class="user-horizontal-grid" id="followingUserGrid">
+                        <p class="muted-text">You are not following anyone yet.</p>
+                    </div>
+                </div>
+
+                <!-- Row 2: Followers -->
+                <div class="profile-card social-row-card">
+                    <div class="social-row-header">
+                        <h3><i class="fa-solid fa-users text-cyan"></i> Followers</h3>
+                        <span class="muted-text" id="followersCountLbl">0 Users</span>
+                    </div>
+                    <div class="user-horizontal-grid" id="followersUserGrid">
+                        <p class="muted-text">No followers yet.</p>
+                    </div>
+                </div>
+
+                <!-- Row 3: Posts Made by User -->
+                <div class="profile-card social-row-card">
+                    <div class="social-row-header">
+                        <h3><i class="fa-solid fa-message text-cyan"></i> My Posts</h3>
+                        <span class="muted-text" id="userPostsCountLbl">0 Posts</span>
+                    </div>
+                    <div class="user-posts-feed" id="myUserPostsFeed">
+                        <p class="muted-text py-3">You haven't published any posts yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- MOBILE BOTTOM NAVBAR -->
     <nav class="mobile-nav">
         <a href="#" data-target="homeView" data-filter="all" class="mobile-nav-link active">
@@ -450,97 +410,91 @@
     </nav>
 
     <!-- MEDIA DETAIL / EDIT ENTRY MODAL -->
-<div id="mediaModal" class="modal-backdrop">
-    <div class="modal-container entry-modal">
-        <button id="modalCloseBtn" class="modal-close">&times;</button>
-        
-        <!-- Banner & Floating Poster Header -->
-        <div class="modal-header-banner" id="modalBanner">
-            <div class="banner-overlay"></div>
-            <div class="modal-header-content">
-                <img id="modalPoster" src="" alt="Poster" class="modal-poster-thumb">
-                <div class="modal-title-area">
-                    <h2 id="modalTitle">Media Title</h2>
-                    <span id="modalSubheading" class="modal-subheading">MOVIE · 2024</span>
-                </div>
-                <div class="modal-header-actions">
-                    <button type="button" id="modalFavoriteBtn" class="btn-icon-fav" title="Toggle Favorite">
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
-                    <button type="button" id="modalSaveTopBtn" class="btn btn-primary btn-save-modal">Save</button>
+    <div id="mediaModal" class="modal-backdrop">
+        <div class="modal-container entry-modal">
+            <button id="modalCloseBtn" class="modal-close">&times;</button>
+            
+            <div class="modal-header-banner" id="modalBanner">
+                <div class="banner-overlay"></div>
+                <div class="modal-header-content">
+                    <img id="modalPoster" src="" alt="Poster" class="modal-poster-thumb">
+                    <div class="modal-title-area">
+                        <h2 id="modalTitle">Media Title</h2>
+                        <span id="modalSubheading" class="modal-subheading">MOVIE · 2024</span>
+                    </div>
+                    <div class="modal-header-actions">
+                        <button type="button" id="modalFavoriteBtn" class="btn-icon-fav" title="Toggle Favorite">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                        <button type="button" id="modalSaveTopBtn" class="btn btn-primary btn-save-modal">Save</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Form Fields Grid -->
-        <div class="modal-body-form">
-            <form id="mediaEntryForm" class="entry-form-grid">
-                <div class="form-main-fields">
-                    <!-- Row 1: Status, Score, Episode Progress -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="modal-label">Status</label>
-                            <select id="entryStatus" class="modal-input-select">
-                                <option value="Watching">Watching</option>
-                                <option value="Plan to Watch" selected>Plan to Watch</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Paused">Paused</option>
-                                <option value="Dropped">Dropped</option>
-                            </select>
+            <div class="modal-body-form">
+                <form id="mediaEntryForm" class="entry-form-grid">
+                    <div class="form-main-fields">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="modal-label">Status</label>
+                                <select id="entryStatus" class="modal-input-select">
+                                    <option value="Watching">Watching</option>
+                                    <option value="Plan to Watch" selected>Plan to Watch</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Paused">Paused</option>
+                                    <option value="Dropped">Dropped</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="modal-label">Score (0-10)</label>
+                                <input type="number" id="entryScore" class="modal-input" min="0" max="10" step="0.5" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="modal-label">Episode Progress</label>
+                                <input type="number" id="entryProgress" class="modal-input" min="0" value="0">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="modal-label">Score (0-10)</label>
-                            <input type="number" id="entryScore" class="modal-input" min="0" max="10" step="0.5" value="0">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="modal-label">Start Date</label>
+                                <input type="date" id="entryStartDate" class="modal-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="modal-label">Finish Date</label>
+                                <input type="date" id="entryFinishDate" class="modal-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="modal-label">Total Rewatches</label>
+                                <input type="number" id="entryRewatches" class="modal-input" min="0" value="0">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="modal-label">Episode Progress</label>
-                            <input type="number" id="entryProgress" class="modal-input" min="0" value="0">
+
+                        <div class="form-group full-width">
+                            <label class="modal-label">Notes</label>
+                            <textarea id="entryNotes" class="modal-textarea" placeholder="Add personal notes or review..."></textarea>
                         </div>
                     </div>
 
-                    <!-- Row 2: Start Date, Finish Date, Rewatches -->
-                    <div class="form-row">
+                    <div class="form-side-fields">
                         <div class="form-group">
-                            <label class="modal-label">Start Date</label>
-                            <input type="date" id="entryStartDate" class="modal-input">
+                            <label class="modal-label">Custom Lists</label>
+                            <p class="muted-text">No custom lists</p>
                         </div>
-                        <div class="form-group">
-                            <label class="modal-label">Finish Date</label>
-                            <input type="date" id="entryFinishDate" class="modal-input">
+                        <div class="form-group checkbox-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="entryPrivate">
+                                <span>Private Entry</span>
+                            </label>
                         </div>
-                        <div class="form-group">
-                            <label class="modal-label">Total Rewatches</label>
-                            <input type="number" id="entryRewatches" class="modal-input" min="0" value="0">
+                        <div class="form-actions-bottom">
+                            <button type="button" id="entryDeleteBtn" class="btn-delete-entry">Delete</button>
                         </div>
                     </div>
-
-                    <!-- Row 3: Notes -->
-                    <div class="form-group full-width">
-                        <label class="modal-label">Notes</label>
-                        <textarea id="entryNotes" class="modal-textarea" placeholder="Add personal notes or review..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Side Options -->
-                <div class="form-side-fields">
-                    <div class="form-group">
-                        <label class="modal-label">Custom Lists</label>
-                        <p class="muted-text">No custom lists</p>
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="entryPrivate">
-                            <span>Private Entry</span>
-                        </label>
-                    </div>
-                    <div class="form-actions-bottom">
-                        <button type="button" id="entryDeleteBtn" class="btn-delete-entry">Delete</button>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- AUTHENTICATION MODAL -->
     <div id="authModal" class="modal-backdrop">

@@ -29,6 +29,8 @@ let currentUser = null;
 let isSignUpMode = false;
 let userEntries = {}; 
 let activeMediaData = null;
+let activeProfileTab = 'overview';
+let activeListFilter = 'all';
 
 // --- HELPER FUNCTIONS ---
 function escapeHtml(str) {
@@ -123,16 +125,282 @@ function updateProfileStats() {
     // Favorite Media Grid Update
     const favGrid = document.querySelector('.profile-media-mini-grid');
     const favorites = entries.filter(e => e.isFavorite);
-    if (favGrid && favorites.length > 0) {
-        favGrid.innerHTML = favorites.map(item => `
-            <div class="movie-card">
-                <div class="poster-wrapper">
-                    <img src="${item.poster_path}" alt="${escapeHtml(item.title)}">
-                    <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.score || '8.0'}</div>
+    if (favGrid) {
+        if (favorites.length > 0) {
+            favGrid.innerHTML = favorites.map(item => `
+                <div class="movie-card" data-id="${item.id}">
+                    <div class="poster-wrapper">
+                        <img src="${item.poster_path}" alt="${escapeHtml(item.title)}">
+                        <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.score || '8.0'}</div>
+                    </div>
+                    <div class="movie-title">${escapeHtml(item.title)}</div>
                 </div>
-                <div class="movie-title">${escapeHtml(item.title)}</div>
+            `).join('');
+        } else {
+            favGrid.innerHTML = `<p class="muted-text">No favorites added yet.</p>`;
+        }
+    }
+}
+
+// --- PROFILE SUB-TAB CONTROLLER ---
+function initProfileSubTabs() {
+    const profileTabs = document.querySelectorAll('.profile-tab');
+    const tabContents = document.querySelectorAll('.profile-tab-content');
+
+    profileTabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetTab = tab.getAttribute('data-profile-tab');
+            if (!targetTab) return;
+
+            activeProfileTab = targetTab;
+
+            // Activate tab link
+            profileTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Show corresponding content block
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `tab-${targetTab}`);
+            });
+
+            // Refresh target view data
+            renderProfileSubView(targetTab);
+        });
+    });
+}
+
+function renderProfileSubView(tabName = activeProfileTab) {
+    switch (tabName) {
+        case 'medialist':
+            renderMediaListTable();
+            break;
+        case 'favorites':
+            renderFavoritesPage();
+            break;
+        case 'stats':
+            renderStatsPage();
+            break;
+        case 'social':
+            renderProfileSocialRows();
+            break;
+        case 'overview':
+        default:
+            updateProfileStats();
+            break;
+    }
+}
+
+// --- 1. MEDIA LIST TABLE RENDERER ---
+function renderMediaListTable() {
+    const tableBody = document.getElementById('mediaListTableBody');
+    if (!tableBody) return;
+
+    const searchTerm = document.getElementById('listSearchInput')?.value.toLowerCase() || '';
+    const formatFilter = document.getElementById('listFormatFilter')?.value || 'all';
+
+    let entries = Object.values(userEntries);
+
+    // Apply Status Filter
+    if (activeListFilter !== 'all') {
+        entries = entries.filter(e => e.status === activeListFilter);
+    }
+
+    // Apply Format Filter
+    if (formatFilter !== 'all') {
+        entries = entries.filter(e => e.type === formatFilter);
+    }
+
+    // Apply Search Filter
+    if (searchTerm) {
+        entries = entries.filter(e => e.title.toLowerCase().includes(searchTerm));
+    }
+
+    if (entries.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" class="text-center muted-text py-4">No media found in this list category.</td></tr>`;
+        return;
+    }
+
+    tableBody.innerHTML = entries.map(item => `
+        <tr class="media-row-item" data-id="${item.id}">
+            <td>
+                <div class="table-media-cell">
+                    <img src="${item.poster_path}" alt="${escapeHtml(item.title)}" class="table-thumb">
+                    <span class="font-weight-600">${escapeHtml(item.title)}</span>
+                </div>
+            </td>
+            <td class="text-center font-weight-600 text-cyan">${item.score > 0 ? item.score : '-'}</td>
+            <td class="text-center muted-text">${item.progress || 0} / ${item.type === 'Movie' ? '1' : '12'}</td>
+            <td class="text-center muted-text">${escapeHtml(item.type)}</td>
+        </tr>
+    `).join('');
+}
+
+// --- 2. FAVORITES PAGE RENDERER ---
+function renderFavoritesPage() {
+    const favGrid = document.getElementById('favoritesFullGrid');
+    if (!favGrid) return;
+
+    const favorites = Object.values(userEntries).filter(e => e.isFavorite);
+
+    if (favorites.length === 0) {
+        favGrid.innerHTML = `<p class="muted-text">No favorite media added yet. Open a title and click the heart icon to save it here!</p>`;
+        return;
+    }
+
+    favGrid.innerHTML = favorites.map(item => `
+        <div class="movie-card" data-id="${item.id}">
+            <div class="poster-wrapper">
+                <img src="${item.poster_path}" alt="${escapeHtml(item.title)}">
+                <div class="rating-badge"><i class="fa-solid fa-star"></i> ${item.score || '8.0'}</div>
+            </div>
+            <div class="movie-title">${escapeHtml(item.title)}</div>
+        </div>
+    `).join('');
+}
+
+// --- 3. STATS PAGE CHARTS & METRICS ---
+function renderStatsPage() {
+    const entries = Object.values(userEntries);
+
+    // Metrics Calculations
+    const totalTitles = entries.length;
+    const episodesWatched = entries.reduce((acc, curr) => acc + (Number(curr.progress) || 0), 0);
+    const totalHours = entries.reduce((acc, curr) => acc + ((Number(curr.progress) || 1) * 2), 0);
+    const daysWatched = (totalHours / 24).toFixed(1);
+
+    const scored = entries.filter(e => Number(e.score) > 0);
+    const meanScore = scored.length > 0 ? (scored.reduce((a, b) => a + Number(b.score), 0) / scored.length).toFixed(1) : '0.0';
+
+    if (document.getElementById('statTotalTitles')) document.getElementById('statTotalTitles').textContent = totalTitles;
+    if (document.getElementById('statEpisodesWatched')) document.getElementById('statEpisodesWatched').textContent = episodesWatched;
+    if (document.getElementById('statDaysWatched')) document.getElementById('statDaysWatched').textContent = daysWatched;
+    if (document.getElementById('statMeanScore')) document.getElementById('statMeanScore').textContent = meanScore;
+
+    // Render Score Distribution Chart (1-10 scores)
+    const scoreChart = document.getElementById('scoreChartContainer');
+    if (scoreChart) {
+        const scoreCounts = Array(10).fill(0);
+        entries.forEach(e => {
+            const val = Math.round(Number(e.score));
+            if (val >= 1 && val <= 10) scoreCounts[val - 1]++;
+        });
+
+        const maxCount = Math.max(...scoreCounts, 1);
+
+        scoreChart.innerHTML = scoreCounts.map((count, idx) => {
+            const heightPct = Math.round((count / maxCount) * 100);
+            return `
+                <div class="chart-bar-col">
+                    <span class="bar-count-lbl">${count > 0 ? count : ''}</span>
+                    <div class="bar-fill-inner" style="height: ${heightPct}%;"></div>
+                    <span class="bar-x-lbl">${idx + 1}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Status Distribution List
+    const statusList = document.getElementById('statusDistributionList');
+    if (statusList) {
+        const statuses = ['Completed', 'Watching', 'Plan to Watch', 'Dropped'];
+        statusList.innerHTML = statuses.map(st => {
+            const count = entries.filter(e => (e.status || 'Plan to Watch') === st).length;
+            const pct = totalTitles > 0 ? Math.round((count / totalTitles) * 100) : 0;
+            return `
+                <div class="dist-item-row">
+                    <span style="width: 110px;">${st}</span>
+                    <div class="dist-bar-wrapper"><div class="dist-bar-fill" style="width: ${pct}%;"></div></div>
+                    <span>${count} (${pct}%)</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Format Distribution List
+    const formatList = document.getElementById('formatDistributionList');
+    if (formatList) {
+        const formats = ['Movie', 'TV Show'];
+        formatList.innerHTML = formats.map(fmt => {
+            const count = entries.filter(e => e.type === fmt).length;
+            const pct = totalTitles > 0 ? Math.round((count / totalTitles) * 100) : 0;
+            return `
+                <div class="dist-item-row">
+                    <span style="width: 110px;">${fmt}s</span>
+                    <div class="dist-bar-wrapper"><div class="dist-bar-fill" style="width: ${pct}%;"></div></div>
+                    <span>${count} (${pct}%)</span>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// --- 4. PROFILE SOCIAL ROWS RENDERER (3 ROWS) ---
+function renderProfileSocialRows() {
+    // Row 1: Following
+    const followingGrid = document.getElementById('followingUserGrid');
+    const sampleFollowing = [
+        { name: 'Sarah Jenkins', username: 'sjenkins', avatarColor: '#4f46e5' },
+        { name: 'Marcus Chen', username: 'mchen', avatarColor: '#10b981' }
+    ];
+
+    if (followingGrid) {
+        const followingLbl = document.getElementById('followingCountLbl');
+        if (followingLbl) followingLbl.textContent = `${sampleFollowing.length} Users`;
+
+        followingGrid.innerHTML = sampleFollowing.map(u => `
+            <div class="user-mini-card">
+                <div class="user-avatar" style="background-color: ${u.avatarColor};">${getInitials(u.name)}</div>
+                <div class="user-meta">
+                    <span class="user-name">${escapeHtml(u.name)}</span>
+                    <span class="user-handle">@${escapeHtml(u.username)}</span>
+                </div>
             </div>
         `).join('');
+    }
+
+    // Row 2: Followers
+    const followersGrid = document.getElementById('followersUserGrid');
+    const sampleFollowers = [
+        { name: 'Elena Rostova', username: 'erostova', avatarColor: '#e06d53' }
+    ];
+
+    if (followersGrid) {
+        const followersLbl = document.getElementById('followersCountLbl');
+        if (followersLbl) followersLbl.textContent = `${sampleFollowers.length} Users`;
+
+        followersGrid.innerHTML = sampleFollowers.map(u => `
+            <div class="user-mini-card">
+                <div class="user-avatar" style="background-color: ${u.avatarColor};">${getInitials(u.name)}</div>
+                <div class="user-meta">
+                    <span class="user-name">${escapeHtml(u.name)}</span>
+                    <span class="user-handle">@${escapeHtml(u.username)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Row 3: User's Own Posts
+    const userPostsFeed = document.getElementById('myUserPostsFeed');
+    const username = currentUser?.user_metadata?.username || 'Guest User';
+    const userPostsLbl = document.getElementById('userPostsCountLbl');
+
+    if (userPostsFeed) {
+        if (userPostsLbl) userPostsLbl.textContent = `1 Post`;
+        userPostsFeed.innerHTML = `
+            <div class="feed-card">
+                <div class="feed-header">
+                    <div class="user-avatar" style="background-color: #6366f1;">${getInitials(username)}</div>
+                    <div class="user-meta">
+                        <span class="user-name">${escapeHtml(username)}</span>
+                        <span class="user-handle">Just now</span>
+                    </div>
+                </div>
+                <div class="feed-content">
+                    <p class="activity-text">Updated watchlist entry and ratings.</p>
+                </div>
+            </div>
+        `;
     }
 }
 
@@ -212,6 +480,7 @@ async function saveMediaEntry() {
     }
 
     updateProfileStats();
+    renderProfileSubView(activeProfileTab);
     closeMediaModal();
     alert(`Saved "${entry.title}" to your library!`);
 }
@@ -227,6 +496,7 @@ async function deleteMediaEntry() {
     }
 
     updateProfileStats();
+    renderProfileSubView(activeProfileTab);
     closeMediaModal();
 }
 
@@ -274,6 +544,7 @@ async function fetchUserWatchlist(userId) {
             };
         });
         updateProfileStats();
+        renderProfileSubView(activeProfileTab);
     }
 }
 
@@ -503,6 +774,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const authToggleText = document.getElementById('authToggleText');
     const usernameGroup = document.getElementById('usernameGroup');
 
+    // Profile Sub-Tabs Initialization
+    initProfileSubTabs();
+
+    // Media List Filtering Event Listeners
+    document.querySelectorAll('.list-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.list-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeListFilter = btn.getAttribute('data-status-filter') || 'all';
+            const titleEl = document.getElementById('currentListCategoryTitle');
+            if (titleEl) titleEl.textContent = activeListFilter === 'all' ? 'All Entries' : activeListFilter;
+            renderMediaListTable();
+        });
+    });
+
+    document.getElementById('listSearchInput')?.addEventListener('input', renderMediaListTable);
+    document.getElementById('listFormatFilter')?.addEventListener('change', renderMediaListTable);
+
     // Modal Form Buttons
     document.getElementById('modalSaveTopBtn')?.addEventListener('click', saveMediaEntry);
     document.getElementById('entryDeleteBtn')?.addEventListener('click', deleteMediaEntry);
@@ -572,7 +861,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             isSignUpMode = !isSignUpMode;
 
-            if (authTitle) authTitle.textContent = isSignUpMode ? 'Create Account' : 'Welcome to Seenverse';
+            if (authTitle) authTitle.textContent = isSignUpMode ? 'Create Account' : 'Welcome to StreamHub';
             if (authSubmitBtn) authSubmitBtn.textContent = isSignUpMode ? 'Sign Up' : 'Sign In';
             if (authToggleText) authToggleText.textContent = isSignUpMode ? 'Already have an account?' : "Don't have an account?";
             authToggleBtn.textContent = isSignUpMode ? 'Sign In' : 'Sign Up';
@@ -619,6 +908,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const btnFilter = btn.getAttribute('data-filter') || 'all';
                 btn.classList.toggle('active', btnFilter === filter);
             });
+        } else if (targetId === 'profileView') {
+            renderProfileSubView(activeProfileTab);
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -635,15 +926,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Global Event Delegation
     document.addEventListener('click', (e) => {
-        // Profile Sub-tab Switcher
-        const profileTab = e.target.closest('.profile-tab');
-        if (profileTab) {
-            e.preventDefault();
-            document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
-            profileTab.classList.add('active');
-            return;
-        }
-
         // Dismiss Profile Dropdown on Click Outside
         if (profileDropdown && !e.target.closest('.avatar-wrapper')) {
             profileDropdown.classList.remove('active');
