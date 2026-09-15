@@ -1412,7 +1412,6 @@ async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
         const response = await fetch(endpoint);
         const data = await response.json();
         if (data.results && data.results.length > 0) {
-            // Take only top 12 for the scrolling row
             mediaList = data.results.slice(0, 12).map(item => {
                 const isTv = (item.media_type === 'tv') || Boolean(item.name && !item.title);
                 return {
@@ -1430,6 +1429,16 @@ async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
         }
     } catch (error) {
         mediaList = FALLBACK_MEDIA; 
+    }
+
+    // Filter results based on the active filter (All / Movie / TV Show)
+    if (activeFilter !== 'all') {
+        mediaList = mediaList.filter(item => {
+            const isTv = isTvShow(item.type);
+            if (activeFilter === 'Movie') return !isTv;
+            if (activeFilter === 'TV Show') return isTv;
+            return true;
+        });
     }
 
     const cardsHtml = mediaList.map(item => {
@@ -1502,7 +1511,6 @@ async function loadCategoryFullPage(category) {
         }
     } catch (e) {}
 
-    // Borrow the Search Results page to show our category grid
     searchState.currentResults = rawMediaList;
     searchState.query = category; 
     
@@ -1512,7 +1520,6 @@ async function loadCategoryFullPage(category) {
     const titleLabel = document.getElementById('searchResultsTitle');
     if (titleLabel) titleLabel.textContent = `Explore ${category}`;
 }
-
 
 // --- SEARCH, FILTER & SORT CONTROLLER ---
 function initSearchControls() {
