@@ -44,6 +44,20 @@ let activeListFilter = 'all';
 let currentMovieGenreSort = 'count';
 let currentTvGenreSort = 'count';
 
+// Profile Customization State
+let userProfile = {
+    color: '#3db4f2',
+    theme: 'dark',
+    about: 'just a random guy who likes anime',
+    avatarUrl: '',
+    bannerUrl: '',
+    restrictMessages: false
+};
+
+// Pending Upload Buffers
+let tempAvatarBase64 = '';
+let tempBannerBase64 = '';
+
 // --- SEARCH & FILTER STATE ---
 let searchState = {
     query: '',
@@ -69,10 +83,8 @@ function getEffectiveProgress(item) {
     const isTv = isTvShow(item.type);
     const totalEps = Number(item.totalEpisodes || item.number_of_episodes || (isTv ? 12 : 1));
 
-    // If explicit progress recorded > 0, return it
     if (prog > 0) return prog;
 
-    // Smart fallbacks for items marked Completed, Watching, or Rated
     if (status === 'completed' || status === 'watching' || Number(item.score) > 0) {
         if (isTv) {
             return status === 'watching' ? 1 : totalEps;
@@ -97,13 +109,11 @@ function loadEntriesFromLocalStorage() {
         if (saved) {
             userEntries = JSON.parse(saved);
             
-            // Retroactive Migration & Repair for Existing Saved Entries
             Object.keys(userEntries).forEach(id => {
                 const item = userEntries[id];
                 const status = String(item.status || '').trim().toLowerCase();
                 const isTv = isTvShow(item.type);
                 
-                // Ensure proper standard formatting
                 item.type = isTv ? 'TV Show' : 'Movie';
                 item.totalEpisodes = Number(item.totalEpisodes || (isTv ? 12 : 1));
 
@@ -118,6 +128,25 @@ function loadEntriesFromLocalStorage() {
     }
 }
 
+function saveUserProfileToLocalStorage() {
+    try {
+        localStorage.setItem('streamhub_userProfileSettings', JSON.stringify(userProfile));
+    } catch (e) {
+        console.error("Failed to save profile settings", e);
+    }
+}
+
+function loadUserProfileFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('streamhub_userProfileSettings');
+        if (saved) {
+            userProfile = { ...userProfile, ...JSON.parse(saved) };
+        }
+    } catch (e) {
+        console.error("Failed to load profile settings", e);
+    }
+}
+
 function saveViewState(viewId, filter = 'all') {
     localStorage.setItem('streamhub_activeView', viewId);
     localStorage.setItem('streamhub_activeFilter', filter);
@@ -127,9 +156,7 @@ function saveViewState(viewId, filter = 'all') {
 // --- HELPER FUNCTIONS ---
 function normalizeString(str) {
     if (!str) return '';
-    return String(str)
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, '');
+    return String(str).toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 function escapeHtml(str) {
@@ -146,18 +173,250 @@ function getInitials(name) {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
 }
 
+// --- PROFILE CUSTOMIZATION UI RENDERER ---
+function applyUserProfileUI() {
+    document.documentElement.style.setProperty('--user-accent-color', userProfile.color);
+    document.body.setAttribute('data-theme', userProfile.theme);
+
+    const avatarEls = document.querySelectorAll('.profile-avatar-lg, .avatar');
+    avatarEls.forEach(el => {
+        if (userProfile.avatarUrl) {
+            el.style.backgroundImage = `url('${userProfile.avatarUrl}')`;
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center';
+            el.textContent = '';
+        } else if (currentUser) {
+            el.style.backgroundImage = '';
+            el.textContent = getInitials(currentUser.email);
+        }
+    });
+
+    const bannerHeader = document.querySelector('.profile-header, #profileBannerHeader');
+    if (bannerHeader && userProfile.bannerUrl) {
+        bannerHeader.style.backgroundImage = `url('${userProfile.bannerUrl}')`;
+        bannerHeader.style.backgroundSize = 'cover';
+        bannerHeader.style.backgroundPosition = 'center';
+    }
+
+    const bioTextEl = document.getElementById('profileAboutTextDisplay') || document.querySelector('.profile-about-bio');
+    if (bioTextEl) {
+        bioTextEl.innerHTML = escapeHtml(userProfile.about).replace(/\n/g, '<br>');
+    }
+}
+
 function updateProfileUI(user) {
     const usernameEl = document.getElementById('profileUsername');
-    const profileAvatarLg = document.querySelector('.profile-avatar-lg');
-    
     if (user) {
         const username = user.user_metadata?.username || user.email.split('@')[0];
         if (usernameEl) usernameEl.textContent = username;
-        if (profileAvatarLg) profileAvatarLg.textContent = getInitials(username);
     } else {
         if (usernameEl) usernameEl.textContent = 'Guest User';
-        if (profileAvatarLg) profileAvatarLg.textContent = 'JS';
     }
+    applyUserProfileUI();
+}
+
+// --- EDIT PROFILE MODAL & TOOLBAR CONTROLLER ---
+function initEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    const closeBtn = document.getElementById('closeEditProfileModalBtn');
+    const saveBtn = document.getElementById('saveProfileBtn');
+
+    document.body.addEventListener('click', (e) => {
+        const editTrigger = e.target.closest('.btn-edit-profile, #editProfileBtn') || (e.target.tagName === 'BUTTON' && e.target.textContent.trim() === 'Edit Profile');
+        if (editTrigger) {
+            e.preventDefault();
+            openEditProfileModal();
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => modal?.classList.remove('active'));
+
+    const swatches = document.querySelectorAll('#profileColorSwatches .color-swatch');
+    swatches.forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            swatches.forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+        });
+    });
+
+    const themes = document.querySelectorAll('#siteThemeOptions .theme-box');
+    themes.forEach(theme => {
+        theme.addEventListener('click', () => {
+            themes.forEach(t => t.classList.remove('active'));
+            theme.classList.add('active');
+        });
+    });
+
+    initAboutToolbar();
+
+    setupUploader('avatarDropZone', 'avatarFileInput', 'avatarPreviewImg', 'avatarPlaceholder', (base64) => {
+        tempAvatarBase64 = base64;
+    });
+
+    setupUploader('bannerDropZone', 'bannerFileInput', 'bannerPreviewImg', 'bannerPlaceholder', (base64) => {
+        tempBannerBase64 = base64;
+    });
+
+    saveBtn?.addEventListener('click', async () => {
+        const activeColor = document.querySelector('#profileColorSwatches .color-swatch.active')?.getAttribute('data-color') || '#3db4f2';
+        const activeTheme = document.querySelector('#siteThemeOptions .theme-box.active')?.getAttribute('data-theme') || 'dark';
+        const aboutBio = document.getElementById('editAboutTextarea')?.value || '';
+        const restrictMsg = document.getElementById('restrictMessagesCheckbox')?.checked || false;
+
+        userProfile.color = activeColor;
+        userProfile.theme = activeTheme;
+        userProfile.about = aboutBio;
+        userProfile.restrictMessages = restrictMsg;
+
+        if (tempAvatarBase64) userProfile.avatarUrl = tempAvatarBase64;
+        if (tempBannerBase64) userProfile.bannerUrl = tempBannerBase64;
+
+        saveUserProfileToLocalStorage();
+        applyUserProfileUI();
+
+        if (supabaseClient && currentUser) {
+            await supabaseClient.from('profiles').upsert([{
+                id: currentUser.id,
+                theme: userProfile.theme,
+                profile_color: userProfile.color,
+                about: userProfile.about,
+                avatar_url: userProfile.avatarUrl,
+                banner_url: userProfile.bannerUrl,
+                restrict_messages: userProfile.restrictMessages
+            }]);
+        }
+
+        modal?.classList.remove('active');
+        alert('Profile updated successfully!');
+    });
+}
+
+function openEditProfileModal() {
+    const modal = document.getElementById('editProfileModal');
+    if (!modal) return;
+
+    document.querySelectorAll('#profileColorSwatches .color-swatch').forEach(sw => {
+        sw.classList.toggle('active', sw.getAttribute('data-color') === userProfile.color);
+    });
+
+    document.querySelectorAll('#siteThemeOptions .theme-box').forEach(th => {
+        th.classList.toggle('active', th.getAttribute('data-theme') === userProfile.theme);
+    });
+
+    const textarea = document.getElementById('editAboutTextarea');
+    if (textarea) textarea.value = userProfile.about;
+
+    const checkbox = document.getElementById('restrictMessagesCheckbox');
+    if (checkbox) checkbox.checked = Boolean(userProfile.restrictMessages);
+
+    const avatarPreview = document.getElementById('avatarPreviewImg');
+    const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+    if (userProfile.avatarUrl && avatarPreview) {
+        avatarPreview.src = userProfile.avatarUrl;
+        avatarPreview.style.display = 'block';
+        if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+    }
+
+    const bannerPreview = document.getElementById('bannerPreviewImg');
+    const bannerPlaceholder = document.getElementById('bannerPlaceholder');
+    if (userProfile.bannerUrl && bannerPreview) {
+        bannerPreview.src = userProfile.bannerUrl;
+        bannerPreview.style.display = 'block';
+        if (bannerPlaceholder) bannerPlaceholder.style.display = 'none';
+    }
+
+    tempAvatarBase64 = '';
+    tempBannerBase64 = '';
+
+    modal.classList.add('active');
+}
+
+function setupUploader(dropZoneId, fileInputId, previewImgId, placeholderId, callback) {
+    const dropZone = document.getElementById(dropZoneId);
+    const fileInput = document.getElementById(fileInputId);
+    const previewImg = document.getElementById(previewImgId);
+    const placeholder = document.getElementById(placeholderId);
+
+    if (!dropZone || !fileInput) return;
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) processFile(e.target.files[0]);
+    });
+
+    function processFile(file) {
+        if (!file.type.startsWith('image/')) {
+            alert('Invalid format. Please select a PNG or JPEG file.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            if (previewImg) {
+                previewImg.src = base64;
+                previewImg.style.display = 'block';
+            }
+            if (placeholder) placeholder.style.display = 'none';
+            callback(base64);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function initAboutToolbar() {
+    const toolbar = document.getElementById('aboutEditorToolbar');
+    const textarea = document.getElementById('editAboutTextarea');
+    if (!toolbar || !textarea) return;
+
+    toolbar.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cmd = btn.getAttribute('data-cmd');
+            wrapSelectedText(textarea, cmd);
+        });
+    });
+}
+
+function wrapSelectedText(textarea, command) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = textarea.value.substring(start, end) || 'text';
+    let replacement = selected;
+
+    switch (command) {
+        case 'bold': replacement = `**${selected}**`; break;
+        case 'italic': replacement = `*${selected}*`; break;
+        case 'underline': replacement = `<u>${selected}</u>`; break;
+        case 'strikethrough': replacement = `~~${selected}~~`; break;
+        case 'heading': replacement = `# ${selected}`; break;
+        case 'link': replacement = `[${selected}](url)`; break;
+        case 'image': replacement = `![${selected}](img_url)`; break;
+        case 'youtube': replacement = `[youtube](https://youtube.com/...)`; break;
+        case 'video': replacement = `[video](url)`; break;
+        case 'list-ul': replacement = `- ${selected}`; break;
+        case 'list-ol': replacement = `1. ${selected}`; break;
+        case 'center': replacement = `<center>${selected}</center>`; break;
+        case 'quote': replacement = `> ${selected}`; break;
+        case 'code': replacement = `\`${selected}\``; break;
+        case 'clear': replacement = selected.replace(/[*_~<u></u>#>[\]`]/g, ''); break;
+    }
+
+    textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    textarea.focus();
 }
 
 // --- PROFILE RECALCULATION & LIVE STATS ---
@@ -238,6 +497,8 @@ function updateProfileStats() {
             favGrid.innerHTML = `<p class="muted-text">No favorites added yet.</p>`;
         }
     }
+
+    applyUserProfileUI();
 }
 
 // --- PROFILE SUB-TAB CONTROLLER ---
@@ -541,9 +802,8 @@ function renderTvStats() {
     const tvShows = Object.values(userEntries).filter(e => isTvShow(e.type));
 
     const totalShows = tvShows.length;
-    
     const episodesWatched = tvShows.reduce((acc, curr) => acc + getEffectiveProgress(curr), 0);
-    const totalHours = episodesWatched * 0.75; // Approx 45 mins per episode
+    const totalHours = episodesWatched * 0.75; 
     const daysWatched = (totalHours / 24).toFixed(1);
 
     const scored = tvShows.filter(e => Number(e.score) > 0);
@@ -1620,12 +1880,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const usernameGroup = document.getElementById('usernameGroup');
 
     loadEntriesFromLocalStorage();
+    loadUserProfileFromLocalStorage();
 
     initProfileSubTabs();
     initStatsTabControls();
     initSearchControls();
+    initEditProfileModal();
 
-    // Auto-fill episode progress input when selecting "Completed" or "Watching" status in modal
+    applyUserProfileUI();
+
     document.getElementById('entryStatus')?.addEventListener('change', (e) => {
         const selectedStatus = String(e.target.value).trim().toLowerCase();
         if ((selectedStatus === 'completed' || selectedStatus === 'watching') && activeMediaData) {
@@ -1761,6 +2024,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (e.target.closest('#authModalCloseBtn') || e.target.id === 'authModal') {
             if (authModal) authModal.classList.remove('active');
+            return;
+        }
+
+        if (e.target.closest('#closeEditProfileModalBtn') || e.target.id === 'editProfileModal') {
+            const editModal = document.getElementById('editProfileModal');
+            if (editModal) editModal.classList.remove('active');
             return;
         }
 
