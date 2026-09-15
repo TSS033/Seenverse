@@ -94,7 +94,7 @@ function getEffectiveProgress(item) {
     return 0;
 }
 
-// --- LOCAL STORAGE PERSISTENCE HELPERS ---
+// --- LOCAL STORAGE PERSISTENCE HELPERS (FOR GUESTS ONLY) ---
 function saveEntriesToLocalStorage() {
     try {
         localStorage.setItem('streamhub_userEntries', JSON.stringify(userEntries));
@@ -272,7 +272,7 @@ function initEditProfileModal() {
         if (tempAvatarBase64) userProfile.avatarUrl = tempAvatarBase64;
         if (tempBannerBase64) userProfile.bannerUrl = tempBannerBase64;
 
-        saveUserProfileToLocalStorage();
+        if (!currentUser) saveUserProfileToLocalStorage();
         applyUserProfileUI();
 
         if (supabaseClient && currentUser) {
@@ -1238,7 +1238,6 @@ async function fetchUserProfile(userId) {
         userProfile.bannerUrl = data.banner_url || userProfile.bannerUrl;
         userProfile.restrictMessages = Boolean(data.restrict_messages);
         
-        saveUserProfileToLocalStorage();
         applyUserProfileUI();
     }
 }
@@ -1281,10 +1280,7 @@ async function saveMediaEntry() {
         isFavorite: favBtn ? favBtn.classList.contains('active') : false
     };
 
-    userEntries[entryId] = entry;
-    saveEntriesToLocalStorage();
-
-    if (supabaseClient && currentUser) {
+    if (currentUser && supabaseClient) {
         const { error } = await supabaseClient.from('watchlists').upsert([
             {
                 user_id: currentUser.id,
@@ -1297,8 +1293,17 @@ async function saveMediaEntry() {
                 notes: entry.notes
             }
         ], { onConflict: 'user_id, media_id' });
-        if (error) console.error('Supabase Save Error:', error.message);
+        
+        if (error) {
+            console.error('API Save Error:', error.message);
+            alert('Failed to sync to account.');
+            return;
+        }
     }
+
+    userEntries[entryId] = entry;
+
+    if (!currentUser) saveEntriesToLocalStorage();
 
     updateProfileStats();
     renderProfileSubView(activeProfileTab);
@@ -1310,12 +1315,16 @@ async function deleteMediaEntry() {
     if (!activeMediaData) return;
     const id = String(activeMediaData.id || activeMediaData.media_id || activeMediaData.title);
 
-    delete userEntries[id];
-    saveEntriesToLocalStorage();
-
-    if (supabaseClient && currentUser) {
-        await supabaseClient.from('watchlists').delete().eq('user_id', currentUser.id).eq('media_id', id);
+    if (currentUser && supabaseClient) {
+        const { error } = await supabaseClient.from('watchlists').delete().eq('user_id', currentUser.id).eq('media_id', id);
+        if (error) {
+            console.error('API Delete Error:', error.message);
+            return;
+        }
     }
+
+    delete userEntries[id];
+    if (!currentUser) saveEntriesToLocalStorage();
 
     updateProfileStats();
     renderProfileSubView(activeProfileTab);
@@ -1337,21 +1346,28 @@ async function addToWatchlist(item) {
         progress: 0,
         totalEpisodes: isTv ? 12 : 1
     };
-    userEntries[entry.id] = entry;
-    saveEntriesToLocalStorage();
 
-    if (supabaseClient && currentUser) {
-        await supabaseClient.from('watchlists').upsert([
+    if (currentUser && supabaseClient) {
+        const { error } = await supabaseClient.from('watchlists').upsert([
             {
                 user_id: currentUser.id,
                 media_id: entry.media_id,
                 title: entry.title,
                 poster_path: entry.poster_path,
                 media_type: entry.type,
-                rating: Number(entry.score) || null
+                rating: Number(entry.score) || null,
+                status: entry.status
             }
         ], { onConflict: 'user_id, media_id' });
+        
+        if (error) {
+            console.error('API Save Error:', error.message);
+            return;
+        }
     }
+
+    userEntries[entry.id] = entry;
+    if (!currentUser) saveEntriesToLocalStorage();
 
     updateProfileStats();
     alert(`${item.title} added to your library!`);
@@ -1367,29 +1383,29 @@ async function fetchUserWatchlist(userId) {
     if (error) {
         console.error('Error fetching watchlist:', error.message);
     } else if (data) {
+        userEntries = {};
+
         data.forEach(item => {
             const entryId = String(item.media_id || item.id);
-            const existing = userEntries[entryId] || {};
-            const itemType = item.media_type || existing.type || 'Movie';
+            const itemType = item.media_type || 'Movie';
             const isTv = isTvShow(itemType);
-            const statusStr = item.status || existing.status || 'Plan to Watch';
-            const totalEps = Number(item.totalEpisodes || existing.totalEpisodes || (isTv ? 12 : 1));
+            const statusStr = item.status || 'Plan to Watch';
+            const totalEps = Number(item.totalEpisodes || (isTv ? 12 : 1));
             
             userEntries[entryId] = {
-                ...existing,
                 id: entryId,
                 media_id: entryId,
                 title: item.title,
                 type: isTv ? 'TV Show' : 'Movie',
-                poster_path: item.poster_path || existing.poster_path,
-                score: item.rating !== null ? item.rating : (existing.score || 0),
+                poster_path: item.poster_path || '',
+                score: item.rating !== null ? item.rating : 0,
                 status: statusStr,
-                progress: existing.progress || (String(statusStr).trim().toLowerCase() === 'completed' ? totalEps : 0),
+                progress: String(statusStr).trim().toLowerCase() === 'completed' ? totalEps : 0,
                 totalEpisodes: totalEps,
-                notes: item.notes || existing.notes || ''
+                notes: item.notes || ''
             };
         });
-        saveEntriesToLocalStorage();
+
         updateProfileStats();
         renderProfileSubView(activeProfileTab);
     }
@@ -2092,6 +2108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const authToggleText = document.getElementById('authToggleText');
     const usernameGroup = document.getElementById('usernameGroup');
 
+    // Default load for initial guest view
     loadEntriesFromLocalStorage();
     loadUserProfileFromLocalStorage();
 
@@ -2154,14 +2171,21 @@ document.addEventListener("DOMContentLoaded", () => {
         supabaseClient.auth.onAuthStateChange((event, session) => {
             currentUser = session ? session.user : null;
             if (currentUser) {
+                // LOGGED IN: Pull strictly from the API
                 if (avatarEl) avatarEl.textContent = getInitials(currentUser.email);
                 updateProfileUI(currentUser);
                 fetchUserProfile(currentUser.id);
                 fetchUserWatchlist(currentUser.id);
             } else {
+                // LOGGED OUT / GUEST: Revert to local storage
                 if (avatarEl) avatarEl.textContent = 'JS';
                 updateProfileUI(null);
                 if (profileDropdown) profileDropdown.classList.remove('active');
+
+                userEntries = {};
+                loadEntriesFromLocalStorage();
+                updateProfileStats();
+                renderProfileSubView(activeProfileTab);
             }
         });
     }
