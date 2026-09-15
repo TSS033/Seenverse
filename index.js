@@ -688,47 +688,50 @@ function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
     const grid = document.getElementById(gridId);
     if (!grid) return;
 
-    let data = BASE_GENRES.map(g => ({ ...g, posters: [...g.posters] }));
     const entries = Object.values(userEntries).filter(e => mediaType === 'movie' ? !isTvShow(e.type) : isTvShow(e.type));
     
-    if (entries.length > 0) {
-        const genreMap = {};
-        entries.forEach(item => {
-            if (item.genres) {
-                item.genres.split('·').forEach(gStr => {
-                    const gName = gStr.trim();
-                    if (!genreMap[gName]) {
-                        genreMap[gName] = { name: gName, count: 0, totalScore: 0, scoreCount: 0, days: 0, hours: 0, posters: [] };
-                    }
-                    genreMap[gName].count += 1;
-                    if (item.score > 0) {
-                        genreMap[gName].totalScore += Number(item.score);
-                        genreMap[gName].scoreCount += 1;
-                    }
-                    const hrs = isTvShow(item.type) ? (getEffectiveProgress(item) * 0.75) : 2;
-                    genreMap[gName].hours += hrs;
-                    if (item.poster_path && !genreMap[gName].posters.includes(item.poster_path)) {
-                        genreMap[gName].posters.unshift(item.poster_path);
-                    }
-                });
-            }
-        });
-
-        data = Object.values(genreMap).map(g => {
-            const totalHours = Math.round(g.hours);
-            const days = Math.floor(totalHours / 24);
-            const hours = totalHours % 24;
-            const score = g.scoreCount > 0 ? (g.totalScore / g.scoreCount) * 10 : 70;
-            return {
-                name: g.name,
-                count: g.count,
-                score: score,
-                days: days,
-                hours: hours,
-                posters: g.posters.length > 0 ? g.posters : BASE_GENRES[0].posters
-            };
-        });
+    // Display clean empty state if no entries exist for this media type
+    if (entries.length === 0) {
+        grid.innerHTML = `<div class="muted-text py-5 text-center" style="grid-column: 1/-1;">No ${mediaType === 'movie' ? 'movies' : 'TV shows'} added to your library yet.</div>`;
+        return;
     }
+
+    const genreMap = {};
+    entries.forEach(item => {
+        if (item.genres) {
+            item.genres.split('·').forEach(gStr => {
+                const gName = gStr.trim();
+                if (!genreMap[gName]) {
+                    genreMap[gName] = { name: gName, count: 0, totalScore: 0, scoreCount: 0, days: 0, hours: 0, posters: [] };
+                }
+                genreMap[gName].count += 1;
+                if (item.score > 0) {
+                    genreMap[gName].totalScore += Number(item.score);
+                    genreMap[gName].scoreCount += 1;
+                }
+                const hrs = isTvShow(item.type) ? (getEffectiveProgress(item) * 0.75) : 2;
+                genreMap[gName].hours += hrs;
+                if (item.poster_path && !genreMap[gName].posters.includes(item.poster_path)) {
+                    genreMap[gName].posters.unshift(item.poster_path);
+                }
+            });
+        }
+    });
+
+    let data = Object.values(genreMap).map(g => {
+        const totalHours = Math.round(g.hours);
+        const days = Math.floor(totalHours / 24);
+        const hours = totalHours % 24;
+        const score = g.scoreCount > 0 ? (g.totalScore / g.scoreCount) * 10 : 70;
+        return {
+            name: g.name,
+            count: g.count,
+            score: score,
+            days: days,
+            hours: hours,
+            posters: g.posters
+        };
+    });
 
     if (sortBy === 'score') {
         data.sort((a, b) => b.score - a.score);
