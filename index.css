@@ -2391,3 +2391,50 @@ body[data-theme="light"] {
 body[data-theme="contrast"] {
     background-color: #000000 !important;
 }
+/* --- Horizontal Scrolling Rows --- */
+.movie-row {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1.5rem;
+    scroll-behavior: smooth;
+    /* Hide scrollbar */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.movie-row::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+.movie-row .movie-card {
+    min-width: 160px;
+    flex-shrink: 0;
+}
+
+/* --- See More Card --- */
+.see-more-card {
+    min-width: 160px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-muted);
+}
+
+.see-more-card:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.see-more-card i {
+    font-size: 2rem;
+}

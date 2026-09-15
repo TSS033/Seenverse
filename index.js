@@ -501,6 +501,15 @@ function updateProfileStats() {
         }
     }
 
+    // --- Update Home Page Stats ---
+    const homeMovies = document.getElementById('homeMoviesCount');
+    const homeShows = document.getElementById('homeShowsCount');
+    const homeTime = document.getElementById('homeWatchTime');
+
+    if (homeMovies) homeMovies.textContent = entries.filter(e => !isTvShow(e.type)).length;
+    if (homeShows) homeShows.textContent = tvTracked;
+    if (homeTime) homeTime.textContent = Math.round(totalHours) + 'h';
+
     applyUserProfileUI();
 }
 
@@ -1386,50 +1395,44 @@ async function fetchUserWatchlist(userId) {
     }
 }
 
-// --- API FETCH & RENDER MEDIA ---
-async function fetchAndRenderMovies(filterCategory = activeFilter) {
-    const gridContainer = document.getElementById('madeForYouGrid');
-    if (!gridContainer) return;
+// --- API FETCH & RENDER MULTIPLE ROWS ---
+async function fetchAndRenderRows() {
+    await fetchAndRenderSingleRow('forYouRow', `${API_CONFIG.BASE_URL}/discover/movie?with_genres=878&api_key=${API_CONFIG.KEY}`, 'Sci-Fi');
+    await fetchAndRenderSingleRow('trendingRow', `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`, 'Trending');
+    await fetchAndRenderSingleRow('actionRow', `${API_CONFIG.BASE_URL}/discover/movie?with_genres=28&api_key=${API_CONFIG.KEY}`, 'Action');
+    await fetchAndRenderSingleRow('dramaRow', `${API_CONFIG.BASE_URL}/discover/movie?with_genres=18&api_key=${API_CONFIG.KEY}`, 'Drama');
+}
+
+async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
     let mediaList = [];
-
     try {
-        let endpoint = `${API_CONFIG.BASE_URL}/trending/${filterCategory === 'Movie' ? 'movie' : filterCategory === 'TV Show' ? 'tv' : 'all'}/week?api_key=${API_CONFIG.KEY}`;
         const response = await fetch(endpoint);
         const data = await response.json();
-
         if (data.results && data.results.length > 0) {
-            mediaList = data.results.map(item => {
+            // Take only top 12 for the scrolling row
+            mediaList = data.results.slice(0, 12).map(item => {
                 const isTv = (item.media_type === 'tv') || Boolean(item.name && !item.title);
-                const isMovie = !isTv;
                 return {
                     id: String(item.id),
-                    title: isMovie ? item.title : item.name,
-                    release_date: isMovie ? item.release_date : item.first_air_date,
+                    title: !isTv ? item.title : item.name,
+                    release_date: !isTv ? item.release_date : item.first_air_date,
                     vote_average: item.vote_average,
-                    type: isMovie ? 'Movie' : 'TV Show',
-                    totalEpisodes: isMovie ? 1 : 12,
+                    type: !isTv ? 'Movie' : 'TV Show',
                     poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
                     backdrop_path: item.backdrop_path ? (API_CONFIG.BACKDROP_BASE + item.backdrop_path) : '',
                     overview: item.overview || 'No description available.',
-                    genres: isMovie ? 'Sci-Fi · Action' : 'Drama · Sci-Fi'
+                    genres: categoryName
                 };
             });
-        } else {
-            throw new Error('No results from API');
         }
     } catch (error) {
-        console.error("Error fetching live data from TMDB, using fallback dataset:", error);
-        mediaList = FALLBACK_MEDIA;
-        if (filterCategory !== 'all') {
-            mediaList = mediaList.filter(item => {
-                const isTv = isTvShow(item.type);
-                return filterCategory === 'Movie' ? !isTv : isTv;
-            });
-        }
+        mediaList = FALLBACK_MEDIA; 
     }
 
-    gridContainer.innerHTML = mediaList.map(item => {
+    const cardsHtml = mediaList.map(item => {
         const titleEscaped = escapeHtml(item.title);
         const yearFormatted = item.release_date ? item.release_date.split('-')[0] : 'N/A';
         const ratingFormatted = item.vote_average ? Number(item.vote_average).toFixed(1) : '8.0';
@@ -1459,7 +1462,57 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
             </div>
         `;
     }).join('');
+
+    const seeMoreHtml = `
+        <div class="see-more-card" data-category="${categoryName}">
+            <i class="fa-solid fa-arrow-right"></i>
+            <span>See More</span>
+        </div>
+    `;
+
+    container.innerHTML = cardsHtml + seeMoreHtml;
 }
+
+async function loadCategoryFullPage(category) {
+    let endpoint = '';
+    if (category === 'Trending') endpoint = `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`;
+    else if (category === 'Sci-Fi') endpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=878&api_key=${API_CONFIG.KEY}`;
+    else if (category === 'Action') endpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=28&api_key=${API_CONFIG.KEY}`;
+    else if (category === 'Drama') endpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=18&api_key=${API_CONFIG.KEY}`;
+
+    let rawMediaList = FALLBACK_MEDIA;
+    try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+             rawMediaList = data.results.map(item => {
+                 const isTv = (item.media_type === 'tv') || Boolean(item.name && !item.title);
+                 return {
+                     id: String(item.id),
+                     title: !isTv ? item.title : item.name,
+                     release_date: !isTv ? item.release_date : item.first_air_date,
+                     vote_average: item.vote_average || 0,
+                     type: !isTv ? 'Movie' : 'TV Show',
+                     poster_path: item.poster_path ? (API_CONFIG.IMAGE_BASE + item.poster_path) : '',
+                     backdrop_path: item.backdrop_path ? (API_CONFIG.BACKDROP_BASE + item.backdrop_path) : '',
+                     overview: item.overview || '',
+                     genres: category
+                 };
+             });
+        }
+    } catch (e) {}
+
+    // Borrow the Search Results page to show our category grid
+    searchState.currentResults = rawMediaList;
+    searchState.query = category; 
+    
+    switchView('searchResultsView');
+    applySortAndRenderResults();
+
+    const titleLabel = document.getElementById('searchResultsTitle');
+    if (titleLabel) titleLabel.textContent = `Explore ${category}`;
+}
+
 
 // --- SEARCH, FILTER & SORT CONTROLLER ---
 function initSearchControls() {
@@ -1884,7 +1937,7 @@ function switchView(targetId, filter = 'all') {
 
     if (targetId === 'homeView') {
         activeFilter = filter;
-        fetchAndRenderMovies(filter);
+        fetchAndRenderRows();
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const btnFilter = btn.getAttribute('data-filter') || 'all';
             btn.classList.toggle('active', btnFilter === filter);
@@ -2061,6 +2114,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (editModal) editModal.classList.remove('active');
             return;
         }
+        
+        // "See More" category routing
+        const seeMoreBtn = e.target.closest('.see-more-card');
+        if (seeMoreBtn) {
+            const category = seeMoreBtn.getAttribute('data-category');
+            loadCategoryFullPage(category);
+            return;
+        }
 
         const filterBtn = e.target.closest('.filter-btn');
         if (filterBtn) {
@@ -2068,7 +2129,7 @@ document.addEventListener("DOMContentLoaded", () => {
             activeFilter = filter;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             filterBtn.classList.add('active');
-            fetchAndRenderMovies(filter);
+            fetchAndRenderRows();
             return;
         }
 

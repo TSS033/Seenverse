@@ -143,43 +143,63 @@
             <div class="stat-card">
                 <i class="fa-solid fa-film" style="color: var(--accent-color); font-size: 1.5rem;"></i>
                 <div>
-                    <h3>128</h3>
+                    <h3><span id="homeMoviesCount">0</span></h3>
                     <p>Movies Saved</p>
                 </div>
             </div>
             <div class="stat-card">
                 <i class="fa-solid fa-tv" style="color: #6366f1; font-size: 1.5rem;"></i>
                 <div>
-                    <h3>42</h3>
+                    <h3><span id="homeShowsCount">0</span></h3>
                     <p>Shows Tracked</p>
                 </div>
             </div>
             <div class="stat-card">
                 <i class="fa-solid fa-clock-rotate-left" style="color: #10b981; font-size: 1.5rem;"></i>
                 <div>
-                    <h3>340h</h3>
+                    <h3><span id="homeWatchTime">0h</span></h3>
                     <p>Watch Time</p>
                 </div>
             </div>
         </div>
 
-        <!-- Made For You / Sci-Fi Grid -->
-        <div class="section-header">
-            <div>
-                <h2>Made For You</h2>
-                <p>Based on your recent interest in Sci-Fi & Cyberpunk</p>
+        <!-- Horizontal Movie Rows -->
+        <div class="home-rows-container">
+            <!-- Sci-Fi (Made For You) -->
+            <div class="row-section">
+                <div class="section-header">
+                    <div>
+                        <h2>Made For You</h2>
+                        <p>Based on your recent interest in Sci-Fi & Cyberpunk</p>
+                    </div>
+                </div>
+                <div id="forYouRow" class="movie-row"></div>
             </div>
-            <div class="filter-tabs">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="Movie">Movies</button>
-                <button class="filter-btn" data-filter="TV Show">TV Shows</button>
-            </div>
-        </div>
 
-        <div id="madeForYouGrid" class="movie-grid">
-            <!-- Dynamic cards fetched via JavaScript -->
+            <!-- Trending -->
+            <div class="row-section mt-4">
+                <div class="section-header">
+                    <h2>Trending Now</h2>
+                </div>
+                <div id="trendingRow" class="movie-row"></div>
+            </div>
+
+            <!-- Action -->
+            <div class="row-section mt-4">
+                <div class="section-header">
+                    <h2>Action Packed</h2>
+                </div>
+                <div id="actionRow" class="movie-row"></div>
+            </div>
+
+            <!-- Drama -->
+            <div class="row-section mt-4">
+                <div class="section-header">
+                    <h2>Critically Acclaimed Drama</h2>
+                </div>
+                <div id="dramaRow" class="movie-row"></div>
+            </div>
         </div>
-    </section>
 
     <!-- VIEW 2: SOCIAL PAGE -->
     <section id="socialView" class="view-section">
