@@ -66,16 +66,20 @@ function getEffectiveProgress(item) {
     if (!item) return 0;
     const prog = Number(item.progress) || 0;
     const status = String(item.status || '').trim().toLowerCase();
-    const totalEps = Number(item.totalEpisodes || item.number_of_episodes || 12);
+    const isTv = isTvShow(item.type);
+    const totalEps = Number(item.totalEpisodes || item.number_of_episodes || (isTv ? 12 : 1));
 
-    // If marked Completed, guarantee returning full episode progress even if typed progress is 0
-    if (status === 'completed') {
-        if (isTvShow(item.type)) {
-            return prog > 0 ? prog : totalEps;
+    // If explicit progress recorded > 0, return it
+    if (prog > 0) return prog;
+
+    // Smart fallbacks for items marked Completed, Watching, or Rated
+    if (status === 'completed' || status === 'watching' || Number(item.score) > 0) {
+        if (isTv) {
+            return status === 'watching' ? 1 : totalEps;
         }
         return 1;
     }
-    return prog;
+    return 0;
 }
 
 // --- LOCAL STORAGE PERSISTENCE HELPERS ---
@@ -93,12 +97,18 @@ function loadEntriesFromLocalStorage() {
         if (saved) {
             userEntries = JSON.parse(saved);
             
-            // Retroactive Migration Fix for Existing Saved Entries
+            // Retroactive Migration & Repair for Existing Saved Entries
             Object.keys(userEntries).forEach(id => {
                 const item = userEntries[id];
                 const status = String(item.status || '').trim().toLowerCase();
-                if (status === 'completed' && (!item.progress || Number(item.progress) === 0)) {
-                    item.progress = isTvShow(item.type) ? (Number(item.totalEpisodes) || 12) : 1;
+                const isTv = isTvShow(item.type);
+                
+                // Ensure proper standard formatting
+                item.type = isTv ? 'TV Show' : 'Movie';
+                item.totalEpisodes = Number(item.totalEpisodes || (isTv ? 12 : 1));
+
+                if ((status === 'completed' || status === 'watching' || Number(item.score) > 0) && (!item.progress || Number(item.progress) === 0)) {
+                    item.progress = isTv ? (status === 'watching' ? 1 : item.totalEpisodes) : 1;
                 }
             });
             saveEntriesToLocalStorage();
@@ -155,8 +165,8 @@ function updateProfileStats() {
     const entries = Object.values(userEntries);
     
     const totalMedia = entries.length;
-    const completedMovies = entries.filter(e => !isTvShow(e.type) && String(e.status).toLowerCase() === 'completed').length;
-    const tvTracked = entries.filter(e => isTvShow(e.type) && String(e.status).toLowerCase() !== 'dropped').length;
+    const completedMovies = entries.filter(e => !isTvShow(e.type) && String(e.status).trim().toLowerCase() === 'completed').length;
+    const tvTracked = entries.filter(e => isTvShow(e.type) && String(e.status).trim().toLowerCase() !== 'dropped').length;
     
     const totalHours = entries.reduce((acc, curr) => {
         const count = getEffectiveProgress(curr);
@@ -503,10 +513,10 @@ function renderMovieStats() {
     const statusContainer = document.getElementById('movieStatusDonutContainer');
     if (statusContainer) {
         const data = [
-            { label: 'Completed', count: movies.filter(e => String(e.status).toLowerCase() === 'completed').length, color: '#68d391' },
-            { label: 'Watching', count: movies.filter(e => String(e.status).toLowerCase() === 'watching').length, color: '#3db4f2' },
-            { label: 'Planning', count: movies.filter(e => String(e.status).toLowerCase() === 'plan to watch').length, color: '#f6ad55' },
-            { label: 'Dropped', count: movies.filter(e => String(e.status).toLowerCase() === 'dropped').length, color: '#fc8181' }
+            { label: 'Completed', count: movies.filter(e => String(e.status).trim().toLowerCase() === 'completed').length, color: '#68d391' },
+            { label: 'Watching', count: movies.filter(e => String(e.status).trim().toLowerCase() === 'watching').length, color: '#3db4f2' },
+            { label: 'Planning', count: movies.filter(e => String(e.status).trim().toLowerCase() === 'plan to watch').length, color: '#f6ad55' },
+            { label: 'Dropped', count: movies.filter(e => String(e.status).trim().toLowerCase() === 'dropped').length, color: '#fc8181' }
         ];
         const donut = createDonutChartSVG(data);
         statusContainer.innerHTML = donut.svgHtml + donut.legendHtml;
@@ -532,7 +542,6 @@ function renderTvStats() {
 
     const totalShows = tvShows.length;
     
-    // Automatically fallback to totalEpisodes (or 12) if marked Completed with 0 typed progress
     const episodesWatched = tvShows.reduce((acc, curr) => acc + getEffectiveProgress(curr), 0);
     const totalHours = episodesWatched * 0.75; // Approx 45 mins per episode
     const daysWatched = (totalHours / 24).toFixed(1);
@@ -551,10 +560,10 @@ function renderTvStats() {
     const statusContainer = document.getElementById('tvStatusDonutContainer');
     if (statusContainer) {
         const data = [
-            { label: 'Completed', count: tvShows.filter(e => String(e.status).toLowerCase() === 'completed').length, color: '#68d391' },
-            { label: 'Watching', count: tvShows.filter(e => String(e.status).toLowerCase() === 'watching').length, color: '#3db4f2' },
-            { label: 'Planning', count: tvShows.filter(e => String(e.status).toLowerCase() === 'plan to watch').length, color: '#f6ad55' },
-            { label: 'Dropped', count: tvShows.filter(e => String(e.status).toLowerCase() === 'dropped').length, color: '#fc8181' }
+            { label: 'Completed', count: tvShows.filter(e => String(e.status).trim().toLowerCase() === 'completed').length, color: '#68d391' },
+            { label: 'Watching', count: tvShows.filter(e => String(e.status).trim().toLowerCase() === 'watching').length, color: '#3db4f2' },
+            { label: 'Planning', count: tvShows.filter(e => String(e.status).trim().toLowerCase() === 'plan to watch').length, color: '#f6ad55' },
+            { label: 'Dropped', count: tvShows.filter(e => String(e.status).trim().toLowerCase() === 'dropped').length, color: '#fc8181' }
         ];
         const donut = createDonutChartSVG(data);
         statusContainer.innerHTML = donut.svgHtml + donut.legendHtml;
@@ -780,7 +789,7 @@ function renderMediaListTable() {
     let entries = Object.values(userEntries);
 
     if (activeListFilter !== 'all') {
-        entries = entries.filter(e => String(e.status).toLowerCase() === activeListFilter.toLowerCase());
+        entries = entries.filter(e => String(e.status).trim().toLowerCase() === activeListFilter.toLowerCase());
     }
 
     if (formatFilter !== 'all') {
@@ -950,9 +959,9 @@ async function saveMediaEntry() {
     const isTv = isTvShow(activeMediaData.type);
     const totalEps = Number(activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || (isTv ? 12 : 1));
 
-    // If marked Completed and progress is 0, auto-fill full progress
-    if (String(statusVal).toLowerCase() === 'completed' && progressVal === 0) {
-        progressVal = isTv ? totalEps : 1;
+    const statusClean = String(statusVal).trim().toLowerCase();
+    if ((statusClean === 'completed' || statusClean === 'watching') && progressVal === 0) {
+        progressVal = isTv ? (statusClean === 'watching' ? 1 : totalEps) : 1;
     }
 
     const entryId = String(activeMediaData.id || activeMediaData.media_id || activeMediaData.title);
@@ -1066,14 +1075,20 @@ async function fetchUserWatchlist(userId) {
         data.forEach(item => {
             const existing = userEntries[item.media_id] || {};
             const itemType = item.media_type || existing.type || 'Movie';
+            const isTv = isTvShow(itemType);
+            const statusStr = item.status || existing.status || 'Plan to Watch';
+            const totalEps = Number(item.totalEpisodes || existing.totalEpisodes || (isTv ? 12 : 1));
+            
             userEntries[item.media_id] = {
                 ...existing,
                 id: item.media_id,
                 title: item.title,
-                type: isTvShow(itemType) ? 'TV Show' : 'Movie',
+                type: isTv ? 'TV Show' : 'Movie',
                 poster_path: item.poster_path || existing.poster_path,
                 score: item.rating !== null ? item.rating : (existing.score || 0),
-                status: item.status || existing.status || 'Plan to Watch',
+                status: statusStr,
+                progress: existing.progress || (String(statusStr).trim().toLowerCase() === 'completed' ? totalEps : 0),
+                totalEpisodes: totalEps,
                 notes: item.notes || existing.notes || ''
             };
         });
@@ -1531,9 +1546,9 @@ function openMediaModal(data) {
     const totalEps = Number(data.totalEpisodes || existing.totalEpisodes || (isTv ? 12 : 1));
     let effectiveProgress = existing.progress !== undefined ? Number(existing.progress) : 0;
 
-    // Auto-populate episode count if marked Completed
-    if (String(effectiveStatus).toLowerCase() === 'completed' && effectiveProgress === 0) {
-        effectiveProgress = isTv ? totalEps : 1;
+    const statusClean = String(effectiveStatus).trim().toLowerCase();
+    if ((statusClean === 'completed' || statusClean === 'watching') && effectiveProgress === 0) {
+        effectiveProgress = isTv ? (statusClean === 'watching' ? 1 : totalEps) : 1;
     }
 
     if (document.getElementById('entryStatus')) document.getElementById('entryStatus').value = effectiveStatus;
@@ -1610,13 +1625,14 @@ document.addEventListener("DOMContentLoaded", () => {
     initStatsTabControls();
     initSearchControls();
 
-    // Auto-fill episode progress input when selecting "Completed" status in modal
+    // Auto-fill episode progress input when selecting "Completed" or "Watching" status in modal
     document.getElementById('entryStatus')?.addEventListener('change', (e) => {
-        if (String(e.target.value).toLowerCase() === 'completed' && activeMediaData) {
+        const selectedStatus = String(e.target.value).trim().toLowerCase();
+        if ((selectedStatus === 'completed' || selectedStatus === 'watching') && activeMediaData) {
             const progInput = document.getElementById('entryProgress');
             if (progInput && (Number(progInput.value) === 0 || !progInput.value)) {
                 const isTv = isTvShow(activeMediaData.type);
-                progInput.value = isTv ? (activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12) : 1;
+                progInput.value = isTv ? (selectedStatus === 'watching' ? 1 : (activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12)) : 1;
             }
         }
     });
