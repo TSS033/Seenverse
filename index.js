@@ -175,6 +175,7 @@ function getInitials(name) {
 
 // --- PROFILE CUSTOMIZATION UI RENDERER ---
 function applyUserProfileUI() {
+    document.documentElement.style.setProperty('--accent-color', userProfile.color);
     document.documentElement.style.setProperty('--user-accent-color', userProfile.color);
     document.body.setAttribute('data-theme', userProfile.theme);
 
@@ -1358,15 +1359,17 @@ async function fetchUserWatchlist(userId) {
         console.error('Error fetching watchlist:', error.message);
     } else if (data) {
         data.forEach(item => {
-            const existing = userEntries[item.media_id] || {};
+            const entryId = String(item.media_id || item.id);
+            const existing = userEntries[entryId] || {};
             const itemType = item.media_type || existing.type || 'Movie';
             const isTv = isTvShow(itemType);
             const statusStr = item.status || existing.status || 'Plan to Watch';
             const totalEps = Number(item.totalEpisodes || existing.totalEpisodes || (isTv ? 12 : 1));
             
-            userEntries[item.media_id] = {
+            userEntries[entryId] = {
                 ...existing,
-                id: item.media_id,
+                id: entryId,
+                media_id: entryId,
                 title: item.title,
                 type: isTv ? 'TV Show' : 'Movie',
                 poster_path: item.poster_path || existing.poster_path,
@@ -2072,6 +2075,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const actionCircle = e.target.closest('.action-circle');
         if (actionCircle) {
             e.stopPropagation();
+            e.preventDefault();
             actionCircle.classList.toggle('added');
             const isAdded = actionCircle.classList.contains('added');
             actionCircle.innerHTML = isAdded ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-plus"></i>';
