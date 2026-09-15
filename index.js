@@ -1397,10 +1397,24 @@ async function fetchUserWatchlist(userId) {
 
 // --- API FETCH & RENDER MULTIPLE ROWS ---
 async function fetchAndRenderRows() {
-    await fetchAndRenderSingleRow('forYouRow', `${API_CONFIG.BASE_URL}/discover/movie?with_genres=878&api_key=${API_CONFIG.KEY}`, 'Sci-Fi');
-    await fetchAndRenderSingleRow('trendingRow', `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`, 'Trending');
-    await fetchAndRenderSingleRow('actionRow', `${API_CONFIG.BASE_URL}/discover/movie?with_genres=28&api_key=${API_CONFIG.KEY}`, 'Action');
-    await fetchAndRenderSingleRow('dramaRow', `${API_CONFIG.BASE_URL}/discover/movie?with_genres=18&api_key=${API_CONFIG.KEY}`, 'Drama');
+    let sciFiEndpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=878&api_key=${API_CONFIG.KEY}`;
+    let actionEndpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=28&api_key=${API_CONFIG.KEY}`;
+    let dramaEndpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=18&api_key=${API_CONFIG.KEY}`;
+    let trendingEndpoint = `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`;
+
+    if (activeFilter === 'TV Show') {
+        sciFiEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=10765&api_key=${API_CONFIG.KEY}`; // Sci-Fi & Fantasy TV
+        actionEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=10759&api_key=${API_CONFIG.KEY}`; // Action & Adventure TV
+        dramaEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=18&api_key=${API_CONFIG.KEY}`; // Drama TV
+        trendingEndpoint = `${API_CONFIG.BASE_URL}/trending/tv/week?api_key=${API_CONFIG.KEY}`;
+    } else if (activeFilter === 'Movie') {
+        trendingEndpoint = `${API_CONFIG.BASE_URL}/trending/movie/week?api_key=${API_CONFIG.KEY}`;
+    }
+
+    await fetchAndRenderSingleRow('forYouRow', sciFiEndpoint, 'Sci-Fi');
+    await fetchAndRenderSingleRow('trendingRow', trendingEndpoint, 'Trending');
+    await fetchAndRenderSingleRow('actionRow', actionEndpoint, 'Action');
+    await fetchAndRenderSingleRow('dramaRow', dramaEndpoint, 'Drama');
 }
 
 async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
@@ -1413,7 +1427,7 @@ async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
         const data = await response.json();
         if (data.results && data.results.length > 0) {
             mediaList = data.results.slice(0, 12).map(item => {
-                const isTv = (item.media_type === 'tv') || Boolean(item.name && !item.title);
+                const isTv = (item.media_type === 'tv') || endpoint.includes('/discover/tv') || endpoint.includes('/trending/tv') || Boolean(item.name && !item.title);
                 return {
                     id: String(item.id),
                     title: !isTv ? item.title : item.name,
