@@ -2398,7 +2398,7 @@ body[data-theme="contrast"] {
     overflow-x: auto;
     padding-bottom: 1.5rem;
     scroll-behavior: smooth;
-    align-items: stretch; /* Keeps items matching heights */
+    align-items: flex-start; /* CRITICAL FIX: Stops flexbox from stretching cards vertically */
     /* Hide scrollbar */
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
@@ -2408,20 +2408,24 @@ body[data-theme="contrast"] {
     display: none; /* Chrome, Safari and Opera */
 }
 
-/* Force strict sizing on the cards inside the row */
+/* Bulletproof sizing for the scrolling cards */
 .movie-row .movie-card {
-    flex: 0 0 180px; /* Don't grow, don't shrink, stay exactly 180px */
-    width: 180px;
-    max-width: 180px;
+    flex: 0 0 160px; /* Exact width, no shrinking/growing */
+    width: 160px;
+    min-width: 160px; /* Prevents large images from breaking the container width */
     display: flex;
     flex-direction: column;
 }
 
-/* Force the poster to maintain the correct shape */
+/* Hardcode the dimensions of the poster to prevent aspect-ratio blowout */
 .movie-row .poster-wrapper {
-    width: 100%;
-    aspect-ratio: 2 / 3; /* Movie poster standard ratio */
-    height: auto;
+    width: 160px;       
+    height: 240px;      
+    min-height: 240px;
+    flex-shrink: 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    position: relative;
 }
 
 .movie-row .poster-wrapper img {
@@ -2434,6 +2438,8 @@ body[data-theme="contrast"] {
 .see-more-card {
     flex: 0 0 160px; 
     width: 160px;
+    min-width: 160px;
+    height: 240px; /* Match the exact poster height */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2441,11 +2447,10 @@ body[data-theme="contrast"] {
     gap: 0.75rem;
     background-color: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: var(--border-radius, 8px);
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--text-muted, #9ca3af);
-    min-height: 270px; /* Gives the card physical height to align with posters */
+    color: var(--text-muted);
 }
 
 .see-more-card:hover {
