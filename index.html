@@ -212,7 +212,7 @@
     <section id="profileView" class="view-section">
         <!-- Profile Banner & Header -->
         <div class="profile-banner-wrapper">
-            <div class="profile-banner"></div>
+            <div class="profile-banner" id="profileBannerHeader"></div>
             <div class="profile-header-content">
                 <div class="profile-avatar-container">
                     <div class="profile-avatar-lg">JS</div>
@@ -223,7 +223,7 @@
                         <span class="profile-badge">PRO MEMBER</span>
                     </div>
                 </div>
-                <button class="btn btn-secondary profile-action-btn">
+                <button class="btn btn-secondary profile-action-btn btn-edit-profile" id="editProfileBtn">
                     <i class="fa-solid fa-gear"></i> Edit Profile
                 </button>
             </div>
@@ -242,6 +242,11 @@
         <div id="tab-overview" class="profile-tab-content active">
             <div class="profile-grid">
                 <div class="profile-main">
+                    <div class="profile-card">
+                        <h3>About</h3>
+                        <p id="profileAboutTextDisplay" class="profile-about-bio">just a random guy who likes anime</p>
+                    </div>
+
                     <div class="profile-card">
                         <h3>Genre Overview</h3>
                         <div class="genre-chips-row">
@@ -415,12 +420,18 @@
                             </div>
                         </div>
 
-                        <!-- Release Year (Movies) -->
+                        <!-- Release Year & Watch Trend (Movies) -->
                         <div class="profile-card chart-card mt-4">
                             <div class="chart-header">
                                 <h3>Movie Release Year</h3>
                             </div>
                             <div class="line-chart-wrapper" id="movieReleaseYearChart"></div>
+                        </div>
+                        <div class="profile-card chart-card mt-4">
+                            <div class="chart-header">
+                                <h3>Watch Activity Trend</h3>
+                            </div>
+                            <div class="line-chart-wrapper" id="movieWatchYearChart"></div>
                         </div>
                     </div>
 
@@ -490,12 +501,18 @@
                             </div>
                         </div>
 
-                        <!-- Release Year (TV Shows) -->
+                        <!-- Release Year & Watch Trend (TV Shows) -->
                         <div class="profile-card chart-card mt-4">
                             <div class="chart-header">
                                 <h3>TV Show Release Year</h3>
                             </div>
                             <div class="line-chart-wrapper" id="tvReleaseYearChart"></div>
+                        </div>
+                        <div class="profile-card chart-card mt-4">
+                            <div class="chart-header">
+                                <h3>Watch Activity Trend</h3>
+                            </div>
+                            <div class="line-chart-wrapper" id="tvWatchYearChart"></div>
                         </div>
                     </div>
 
@@ -721,113 +738,113 @@
     </div>
 
     <!-- EDIT PROFILE MODAL -->
-<div id="editProfileModal" class="modal-overlay">
-    <div class="modal-content edit-profile-modal-content">
-        <div class="modal-header">
-            <h2>Edit Profile</h2>
-            <button id="closeEditProfileModalBtn" class="modal-close-btn">&times;</button>
-        </div>
-        <div class="modal-body edit-profile-body">
-            
-            <!-- Profile Color -->
-            <div class="edit-section">
-                <label class="edit-label">Profile Color</label>
-                <div class="color-swatches" id="profileColorSwatches">
-                    <button class="color-swatch active" data-color="#3db4f2" style="background-color: #3db4f2;"></button>
-                    <button class="color-swatch" data-color="#c062ff" style="background-color: #c062ff;"></button>
-                    <button class="color-swatch" data-color="#4eec58" style="background-color: #4eec58;"></button>
-                    <button class="color-swatch" data-color="#ff8e15" style="background-color: #ff8e15;"></button>
-                    <button class="color-swatch" data-color="#f83b3b" style="background-color: #f83b3b;"></button>
-                    <button class="color-swatch" data-color="#ff90d5" style="background-color: #ff90d5;"></button>
-                    <button class="color-swatch" data-color="#5c6b7a" style="background-color: #5c6b7a;"></button>
-                    <button class="color-swatch custom-gradient-swatch" data-color="linear-gradient(135deg, #3db4f2, #ff90d5)" title="Custom Pro Accent"><i class="fa-solid fa-lock"></i></button>
-                </div>
+    <div id="editProfileModal" class="modal-overlay">
+        <div class="modal-content edit-profile-modal-content">
+            <div class="modal-header">
+                <h2>Edit Profile</h2>
+                <button id="closeEditProfileModalBtn" class="modal-close-btn">&times;</button>
             </div>
-
-            <!-- Site Theme -->
-            <div class="edit-section">
-                <label class="edit-label">Site Theme</label>
-                <div class="theme-options" id="siteThemeOptions">
-                    <button class="theme-box theme-light" data-theme="light" title="Light Mode">A</button>
-                    <button class="theme-box theme-dim" data-theme="dim" title="Dim Mode">A</button>
-                    <button class="theme-box theme-dark active" data-theme="dark" title="Dark Mode">A</button>
-                    <button class="theme-box theme-contrast" data-theme="contrast" title="High Contrast">A</button>
-                </div>
-            </div>
-
-            <!-- About Section -->
-            <div class="edit-section">
-                <label class="edit-label">About</label>
-                <div class="editor-toolbar" id="aboutEditorToolbar">
-                    <button type="button" data-cmd="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
-                    <button type="button" data-cmd="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
-                    <button type="button" data-cmd="underline" title="Underline"><i class="fa-solid fa-underline"></i></button>
-                    <button type="button" data-cmd="strikethrough" title="Strikethrough"><i class="fa-solid fa-strikethrough"></i></button>
-                    <button type="button" data-cmd="clear" title="Clear Formatting"><i class="fa-solid fa-eraser"></i></button>
-                    <span class="toolbar-separator"></span>
-                    <button type="button" data-cmd="heading" title="Header"><i class="fa-solid fa-heading"></i></button>
-                    <button type="button" data-cmd="link" title="Link"><i class="fa-solid fa-link"></i></button>
-                    <button type="button" data-cmd="image" title="Image"><i class="fa-regular fa-image"></i></button>
-                    <button type="button" data-cmd="youtube" title="YouTube Video"><i class="fa-brands fa-youtube"></i></button>
-                    <button type="button" data-cmd="video" title="Video"><i class="fa-solid fa-video"></i></button>
-                    <span class="toolbar-separator"></span>
-                    <button type="button" data-cmd="list-ul" title="Unordered List"><i class="fa-solid fa-list-ul"></i></button>
-                    <button type="button" data-cmd="list-ol" title="Ordered List"><i class="fa-solid fa-list-ol"></i></button>
-                    <button type="button" data-cmd="center" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
-                    <button type="button" data-cmd="quote" title="Quote"><i class="fa-solid fa-quote-right"></i></button>
-                    <button type="button" data-cmd="code" title="Code"><i class="fa-solid fa-code"></i></button>
-                </div>
-                <textarea id="editAboutTextarea" placeholder="Write something about yourself..." rows="4"></textarea>
-            </div>
-
-            <!-- Avatar Upload -->
-            <div class="edit-section">
-                <label class="edit-label">Avatar</label>
-                <p class="edit-hint">Allowed Formats: JPEG, PNG. Max size: 3mb. Optimal dimensions: 230x230</p>
-                <div class="upload-container">
-                    <div class="drop-zone" id="avatarDropZone">
-                        <input type="file" id="avatarFileInput" accept="image/jpeg, image/png" hidden>
-                        <p>Drop image here or<br><span class="highlight-upload">click to upload</span></p>
-                    </div>
-                    <div class="upload-preview-box avatar-preview-box">
-                        <img id="avatarPreviewImg" src="" alt="Avatar Preview" style="display:none;">
-                        <div id="avatarPlaceholder" class="preview-placeholder"><i class="fa-solid fa-user"></i></div>
+            <div class="modal-body edit-profile-body">
+                
+                <!-- Profile Color -->
+                <div class="edit-section">
+                    <label class="edit-label">Profile Color</label>
+                    <div class="color-swatches" id="profileColorSwatches">
+                        <button class="color-swatch active" data-color="#3db4f2" style="background-color: #3db4f2;"></button>
+                        <button class="color-swatch" data-color="#c062ff" style="background-color: #c062ff;"></button>
+                        <button class="color-swatch" data-color="#4eec58" style="background-color: #4eec58;"></button>
+                        <button class="color-swatch" data-color="#ff8e15" style="background-color: #ff8e15;"></button>
+                        <button class="color-swatch" data-color="#f83b3b" style="background-color: #f83b3b;"></button>
+                        <button class="color-swatch" data-color="#ff90d5" style="background-color: #ff90d5;"></button>
+                        <button class="color-swatch" data-color="#5c6b7a" style="background-color: #5c6b7a;"></button>
+                        <button class="color-swatch custom-gradient-swatch" data-color="linear-gradient(135deg, #3db4f2, #ff90d5)" title="Custom Pro Accent"><i class="fa-solid fa-lock"></i></button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Banner Upload -->
-            <div class="edit-section">
-                <label class="edit-label">Banner</label>
-                <p class="edit-hint">Allowed Formats: JPEG, PNG. Max size: 6mb. Optimal dimensions: 1700x330</p>
-                <div class="upload-container banner-upload">
-                    <div class="drop-zone" id="bannerDropZone">
-                        <input type="file" id="bannerFileInput" accept="image/jpeg, image/png" hidden>
-                        <p>Drop image here or<br><span class="highlight-upload">click to upload</span></p>
-                    </div>
-                    <div class="upload-preview-box banner-preview-box">
-                        <img id="bannerPreviewImg" src="" alt="Banner Preview" style="display:none;">
-                        <div id="bannerPlaceholder" class="preview-placeholder"><i class="fa-solid fa-image"></i></div>
+                <!-- Site Theme -->
+                <div class="edit-section">
+                    <label class="edit-label">Site Theme</label>
+                    <div class="theme-options" id="siteThemeOptions">
+                        <button class="theme-box theme-light" data-theme="light" title="Light Mode">A</button>
+                        <button class="theme-box theme-dim" data-theme="dim" title="Dim Mode">A</button>
+                        <button class="theme-box theme-dark active" data-theme="dark" title="Dark Mode">A</button>
+                        <button class="theme-box theme-contrast" data-theme="contrast" title="High Contrast">A</button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Privacy Setting -->
-            <div class="edit-section checkbox-section">
-                <label class="edit-label">Restrict messages to following</label>
-                <label class="custom-checkbox-container">
-                    <input type="checkbox" id="restrictMessagesCheckbox">
-                    <span class="checkmark"></span>
-                    <span class="checkbox-label">Allow only users I follow to message me</span>
-                </label>
-            </div>
+                <!-- About Section -->
+                <div class="edit-section">
+                    <label class="edit-label">About</label>
+                    <div class="editor-toolbar" id="aboutEditorToolbar">
+                        <button type="button" data-cmd="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                        <button type="button" data-cmd="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                        <button type="button" data-cmd="underline" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                        <button type="button" data-cmd="strikethrough" title="Strikethrough"><i class="fa-solid fa-strikethrough"></i></button>
+                        <button type="button" data-cmd="clear" title="Clear Formatting"><i class="fa-solid fa-eraser"></i></button>
+                        <span class="toolbar-separator"></span>
+                        <button type="button" data-cmd="heading" title="Header"><i class="fa-solid fa-heading"></i></button>
+                        <button type="button" data-cmd="link" title="Link"><i class="fa-solid fa-link"></i></button>
+                        <button type="button" data-cmd="image" title="Image"><i class="fa-regular fa-image"></i></button>
+                        <button type="button" data-cmd="youtube" title="YouTube Video"><i class="fa-brands fa-youtube"></i></button>
+                        <button type="button" data-cmd="video" title="Video"><i class="fa-solid fa-video"></i></button>
+                        <span class="toolbar-separator"></span>
+                        <button type="button" data-cmd="list-ul" title="Unordered List"><i class="fa-solid fa-list-ul"></i></button>
+                        <button type="button" data-cmd="list-ol" title="Ordered List"><i class="fa-solid fa-list-ol"></i></button>
+                        <button type="button" data-cmd="center" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                        <button type="button" data-cmd="quote" title="Quote"><i class="fa-solid fa-quote-right"></i></button>
+                        <button type="button" data-cmd="code" title="Code"><i class="fa-solid fa-code"></i></button>
+                    </div>
+                    <textarea id="editAboutTextarea" placeholder="Write something about yourself..." rows="4"></textarea>
+                </div>
 
-        </div>
-        <div class="modal-footer">
-            <button id="saveProfileBtn" class="btn-primary">Save Changes</button>
+                <!-- Avatar Upload -->
+                <div class="edit-section">
+                    <label class="edit-label">Avatar</label>
+                    <p class="edit-hint">Allowed Formats: JPEG, PNG. Max size: 3mb. Optimal dimensions: 230x230</p>
+                    <div class="upload-container">
+                        <div class="drop-zone" id="avatarDropZone">
+                            <input type="file" id="avatarFileInput" accept="image/jpeg, image/png" hidden>
+                            <p>Drop image here or<br><span class="highlight-upload">click to upload</span></p>
+                        </div>
+                        <div class="upload-preview-box avatar-preview-box">
+                            <img id="avatarPreviewImg" src="" alt="Avatar Preview" style="display:none;">
+                            <div id="avatarPlaceholder" class="preview-placeholder"><i class="fa-solid fa-user"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Banner Upload -->
+                <div class="edit-section">
+                    <label class="edit-label">Banner</label>
+                    <p class="edit-hint">Allowed Formats: JPEG, PNG. Max size: 6mb. Optimal dimensions: 1700x330</p>
+                    <div class="upload-container banner-upload">
+                        <div class="drop-zone" id="bannerDropZone">
+                            <input type="file" id="bannerFileInput" accept="image/jpeg, image/png" hidden>
+                            <p>Drop image here or<br><span class="highlight-upload">click to upload</span></p>
+                        </div>
+                        <div class="upload-preview-box banner-preview-box">
+                            <img id="bannerPreviewImg" src="" alt="Banner Preview" style="display:none;">
+                            <div id="bannerPlaceholder" class="preview-placeholder"><i class="fa-solid fa-image"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy Setting -->
+                <div class="edit-section checkbox-section">
+                    <label class="edit-label">Restrict messages to following</label>
+                    <label class="custom-checkbox-container">
+                        <input type="checkbox" id="restrictMessagesCheckbox">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Allow only users I follow to message me</span>
+                    </label>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button id="saveProfileBtn" class="btn-primary">Save Changes</button>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Main JavaScript File -->
     <script src="index.js" defer></script>

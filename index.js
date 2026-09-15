@@ -275,15 +275,17 @@ function initEditProfileModal() {
         applyUserProfileUI();
 
         if (supabaseClient && currentUser) {
-            await supabaseClient.from('profiles').upsert([{
-                id: currentUser.id,
-                theme: userProfile.theme,
-                profile_color: userProfile.color,
-                about: userProfile.about,
-                avatar_url: userProfile.avatarUrl,
-                banner_url: userProfile.bannerUrl,
-                restrict_messages: userProfile.restrictMessages
-            }]);
+            await supabaseClient.from('profiles').upsert([
+                {
+                    id: currentUser.id,
+                    theme: userProfile.theme,
+                    profile_color: userProfile.color,
+                    about: userProfile.about,
+                    avatar_url: userProfile.avatarUrl,
+                    banner_url: userProfile.bannerUrl,
+                    restrict_messages: userProfile.restrictMessages
+                }
+            ], { onConflict: 'id' });
         }
 
         modal?.classList.remove('active');
@@ -1175,7 +1177,7 @@ function renderProfileSocialRows() {
     }
 }
 
-// --- AUTHENTICATION FUNCTIONS ---
+// --- AUTHENTICATION & PROFILE SYNC FUNCTIONS ---
 async function signUp(email, password, username) {
     if (!supabaseClient) return console.warn('Supabase client not initialized');
     const { data, error } = await supabaseClient.auth.signUp({ 
@@ -1188,7 +1190,7 @@ async function signUp(email, password, username) {
     
     if (data.user) {
         await supabaseClient.from('profiles').insert([
-            { id: data.user.id, username: username || email.split('@')[0], avatar_color: '#6366f1' }
+            { id: data.user.id, username: username || email.split('@')[0], profile_color: '#6366f1' }
         ]);
         alert('Account created! Check your email for verification.');
     }
@@ -1206,6 +1208,29 @@ async function signOut() {
     const { error } = await supabaseClient.auth.signOut();
     if (error) console.error('Logout error:', error.message);
     else alert('Signed out successfully.');
+}
+
+async function fetchUserProfile(userId) {
+    if (!supabaseClient || !userId) return;
+    const { data, error } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (error) {
+        console.warn('Profile fetch warning:', error.message);
+    } else if (data) {
+        userProfile.color = data.profile_color || userProfile.color;
+        userProfile.theme = data.theme || userProfile.theme;
+        userProfile.about = data.about || userProfile.about;
+        userProfile.avatarUrl = data.avatar_url || userProfile.avatarUrl;
+        userProfile.bannerUrl = data.banner_url || userProfile.bannerUrl;
+        userProfile.restrictMessages = Boolean(data.restrict_messages);
+        
+        saveUserProfileToLocalStorage();
+        applyUserProfileUI();
+    }
 }
 
 // --- WATCHLIST & ENTRY DATABASE OPERATIONS ---
@@ -1261,7 +1286,7 @@ async function saveMediaEntry() {
                 status: entry.status,
                 notes: entry.notes
             }
-        ]);
+        ], { onConflict: 'user_id, media_id' });
         if (error) console.error('Supabase Save Error:', error.message);
     }
 
@@ -1306,7 +1331,7 @@ async function addToWatchlist(item) {
     saveEntriesToLocalStorage();
 
     if (supabaseClient && currentUser) {
-        await supabaseClient.from('watchlists').insert([
+        await supabaseClient.from('watchlists').upsert([
             {
                 user_id: currentUser.id,
                 media_id: entry.media_id,
@@ -1315,7 +1340,7 @@ async function addToWatchlist(item) {
                 media_type: entry.type,
                 rating: Number(entry.score) || null
             }
-        ]);
+        ], { onConflict: 'user_id, media_id' });
     }
 
     updateProfileStats();
@@ -1942,6 +1967,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (currentUser) {
                 if (avatarEl) avatarEl.textContent = getInitials(currentUser.email);
                 updateProfileUI(currentUser);
+                fetchUserProfile(currentUser.id);
                 fetchUserWatchlist(currentUser.id);
             } else {
                 if (avatarEl) avatarEl.textContent = 'JS';
