@@ -1395,6 +1395,117 @@ async function fetchUserWatchlist(userId) {
     }
 }
 
+// --- ROW SCROLL BUTTON INJECTOR ---
+function ensureRowScrollButtons(container) {
+    if (!container || !container.parentElement) return;
+
+    const parent = container.parentElement;
+    parent.style.position = 'relative';
+
+    if (!parent.querySelector('.row-scroll-btn.left')) {
+        const leftBtn = document.createElement('button');
+        leftBtn.className = 'row-scroll-btn left';
+        leftBtn.setAttribute('data-target', container.id);
+        leftBtn.setAttribute('aria-label', 'Scroll left');
+        leftBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        parent.insertBefore(leftBtn, container);
+    }
+
+    if (!parent.querySelector('.row-scroll-btn.right')) {
+        const rightBtn = document.createElement('button');
+        rightBtn.className = 'row-scroll-btn right';
+        rightBtn.setAttribute('data-target', container.id);
+        rightBtn.setAttribute('aria-label', 'Scroll right');
+        rightBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        parent.appendChild(rightBtn);
+    }
+}
+
+// --- ROW SCROLL ARROW & PRESS & HOLD CONTROLLER ---
+function initRowScrollArrows() {
+    let scrollInterval = null;
+    let holdTimeout = null;
+    let isHolding = false;
+
+    function startScrolling(container, direction) {
+        scrollInterval = setInterval(() => {
+            container.scrollBy({ left: direction * 14, behavior: 'auto' });
+        }, 16);
+    }
+
+    function stopScrolling() {
+        if (holdTimeout) clearTimeout(holdTimeout);
+        if (scrollInterval) clearInterval(scrollInterval);
+        holdTimeout = null;
+        scrollInterval = null;
+    }
+
+    // --- Mouse Events ---
+    document.body.addEventListener('mousedown', (e) => {
+        const btn = e.target.closest('.row-scroll-btn');
+        if (!btn) return;
+
+        e.preventDefault();
+        const targetId = btn.getAttribute('data-target');
+        const container = targetId ? document.getElementById(targetId) : btn.parentElement.querySelector('[id$="Row"], .media-row');
+        if (!container) return;
+
+        const direction = btn.classList.contains('right') ? 1 : -1;
+
+        isHolding = false;
+        holdTimeout = setTimeout(() => {
+            isHolding = true;
+            startScrolling(container, direction);
+        }, 220);
+    });
+
+    document.body.addEventListener('mouseup', (e) => {
+        const btn = e.target.closest('.row-scroll-btn');
+        if (btn && !isHolding) {
+            const targetId = btn.getAttribute('data-target');
+            const container = targetId ? document.getElementById(targetId) : btn.parentElement.querySelector('[id$="Row"], .media-row');
+            if (container) {
+                const direction = btn.classList.contains('right') ? 1 : -1;
+                container.scrollBy({ left: direction * 380, behavior: 'smooth' });
+            }
+        }
+        stopScrolling();
+    });
+
+    document.body.addEventListener('mouseleave', stopScrolling);
+
+    // --- Touch Events (Mobile & Tablet Support) ---
+    document.body.addEventListener('touchstart', (e) => {
+        const btn = e.target.closest('.row-scroll-btn');
+        if (!btn) return;
+
+        const targetId = btn.getAttribute('data-target');
+        const container = targetId ? document.getElementById(targetId) : btn.parentElement.querySelector('[id$="Row"], .media-row');
+        if (!container) return;
+
+        const direction = btn.classList.contains('right') ? 1 : -1;
+
+        isHolding = false;
+        holdTimeout = setTimeout(() => {
+            isHolding = true;
+            startScrolling(container, direction);
+        }, 220);
+    }, { passive: true });
+
+    document.body.addEventListener('touchend', (e) => {
+        const btn = e.target.closest('.row-scroll-btn');
+        if (btn && !isHolding) {
+            const targetId = btn.getAttribute('data-target');
+            const container = targetId ? document.getElementById(targetId) : btn.parentElement.querySelector('[id$="Row"], .media-row');
+            if (container) {
+                const direction = btn.classList.contains('right') ? 1 : -1;
+                container.scrollBy({ left: direction * 380, behavior: 'smooth' });
+            }
+        }
+        stopScrolling();
+    });
+}
+
 // --- API FETCH & RENDER MULTIPLE ROWS ---
 async function fetchAndRenderRows() {
     let sciFiEndpoint = `${API_CONFIG.BASE_URL}/discover/movie?with_genres=878&api_key=${API_CONFIG.KEY}`;
@@ -1403,9 +1514,9 @@ async function fetchAndRenderRows() {
     let trendingEndpoint = `${API_CONFIG.BASE_URL}/trending/all/week?api_key=${API_CONFIG.KEY}`;
 
     if (activeFilter === 'TV Show') {
-        sciFiEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=10765&api_key=${API_CONFIG.KEY}`; // Sci-Fi & Fantasy TV
-        actionEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=10759&api_key=${API_CONFIG.KEY}`; // Action & Adventure TV
-        dramaEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=18&api_key=${API_CONFIG.KEY}`; // Drama TV
+        sciFiEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=10765&api_key=${API_CONFIG.KEY}`;
+        actionEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=10759&api_key=${API_CONFIG.KEY}`;
+        dramaEndpoint = `${API_CONFIG.BASE_URL}/discover/tv?with_genres=18&api_key=${API_CONFIG.KEY}`;
         trendingEndpoint = `${API_CONFIG.BASE_URL}/trending/tv/week?api_key=${API_CONFIG.KEY}`;
     } else if (activeFilter === 'Movie') {
         trendingEndpoint = `${API_CONFIG.BASE_URL}/trending/movie/week?api_key=${API_CONFIG.KEY}`;
@@ -1445,7 +1556,6 @@ async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
         mediaList = FALLBACK_MEDIA; 
     }
 
-    // Filter results based on the active filter (All / Movie / TV Show)
     if (activeFilter !== 'all') {
         mediaList = mediaList.filter(item => {
             const isTv = isTvShow(item.type);
@@ -1494,6 +1604,7 @@ async function fetchAndRenderSingleRow(containerId, endpoint, categoryName) {
     `;
 
     container.innerHTML = cardsHtml + seeMoreHtml;
+    ensureRowScrollButtons(container);
 }
 
 async function loadCategoryFullPage(category) {
@@ -1988,6 +2099,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initStatsTabControls();
     initSearchControls();
     initEditProfileModal();
+    initRowScrollArrows();
 
     applyUserProfileUI();
 
