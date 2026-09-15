@@ -55,11 +55,25 @@ let searchState = {
     currentResults: []
 };
 
-// --- HELPER FUNCTION: GET EFFECTIVE PROGRESS ---
+// --- TYPE & PROGRESS HELPER FUNCTIONS ---
+function isTvShow(type) {
+    if (!type) return false;
+    const t = String(type).trim().toLowerCase();
+    return t === 'tv show' || t === 'tv' || t === 'tvshow';
+}
+
 function getEffectiveProgress(item) {
-    let prog = Number(item.progress) || 0;
-    if (prog === 0 && item.status === 'Completed') {
-        return item.type === 'Movie' ? 1 : (Number(item.totalEpisodes) || 12);
+    if (!item) return 0;
+    const prog = Number(item.progress) || 0;
+    const status = String(item.status || '').trim().toLowerCase();
+    const totalEps = Number(item.totalEpisodes || item.number_of_episodes || 12);
+
+    // If marked Completed, guarantee returning full episode progress even if typed progress is 0
+    if (status === 'completed') {
+        if (isTvShow(item.type)) {
+            return prog > 0 ? prog : totalEps;
+        }
+        return 1;
     }
     return prog;
 }
@@ -78,6 +92,16 @@ function loadEntriesFromLocalStorage() {
         const saved = localStorage.getItem('streamhub_userEntries');
         if (saved) {
             userEntries = JSON.parse(saved);
+            
+            // Retroactive Migration Fix for Existing Saved Entries
+            Object.keys(userEntries).forEach(id => {
+                const item = userEntries[id];
+                const status = String(item.status || '').trim().toLowerCase();
+                if (status === 'completed' && (!item.progress || Number(item.progress) === 0)) {
+                    item.progress = isTvShow(item.type) ? (Number(item.totalEpisodes) || 12) : 1;
+                }
+            });
+            saveEntriesToLocalStorage();
         }
     } catch (e) {
         console.error("Failed to load entries from localStorage", e);
@@ -131,12 +155,12 @@ function updateProfileStats() {
     const entries = Object.values(userEntries);
     
     const totalMedia = entries.length;
-    const completedMovies = entries.filter(e => e.type === 'Movie' && e.status === 'Completed').length;
-    const tvTracked = entries.filter(e => e.type === 'TV Show' && e.status !== 'Dropped').length;
+    const completedMovies = entries.filter(e => !isTvShow(e.type) && String(e.status).toLowerCase() === 'completed').length;
+    const tvTracked = entries.filter(e => isTvShow(e.type) && String(e.status).toLowerCase() !== 'dropped').length;
     
     const totalHours = entries.reduce((acc, curr) => {
         const count = getEffectiveProgress(curr);
-        return acc + (count * (curr.type === 'Movie' ? 2 : 0.75)); 
+        return acc + (count * (isTvShow(curr.type) ? 0.75 : 2)); 
     }, 0);
     const daysWatched = (totalHours / 24).toFixed(1);
 
@@ -361,8 +385,8 @@ function updateChartMetricView(chartCard, metricLabel) {
     const chartContainer = chartCard.querySelector('.bar-chart-container, .line-chart-wrapper');
     if (!chartContainer) return;
 
-    const isMovie = chartContainer.id.startsWith('movie');
-    const entries = Object.values(userEntries).filter(e => e.type === (isMovie ? 'Movie' : 'TV Show'));
+    const isMovieChart = chartContainer.id.startsWith('movie');
+    const entries = Object.values(userEntries).filter(e => isMovieChart ? !isTvShow(e.type) : isTvShow(e.type));
 
     if (chartContainer.id === 'movieScoreChartContainer' || chartContainer.id === 'tvScoreChartContainer') {
         renderScoreChart(chartContainer.id, entries, metricLabel);
@@ -382,9 +406,7 @@ function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
     if (!grid) return;
 
     let data = BASE_GENRES.map(g => ({ ...g, posters: [...g.posters] }));
-    const targetType = mediaType === 'movie' ? 'Movie' : 'TV Show';
-
-    const entries = Object.values(userEntries).filter(e => e.type === targetType);
+    const entries = Object.values(userEntries).filter(e => mediaType === 'movie' ? !isTvShow(e.type) : isTvShow(e.type));
     
     if (entries.length > 0) {
         const genreMap = {};
@@ -400,7 +422,7 @@ function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
                         genreMap[gName].totalScore += Number(item.score);
                         genreMap[gName].scoreCount += 1;
                     }
-                    const hrs = (item.type === 'TV Show') ? (getEffectiveProgress(item) * 0.75) : 2;
+                    const hrs = isTvShow(item.type) ? (getEffectiveProgress(item) * 0.75) : 2;
                     genreMap[gName].hours += hrs;
                     if (item.poster_path && !genreMap[gName].posters.includes(item.poster_path)) {
                         genreMap[gName].posters.unshift(item.poster_path);
@@ -462,7 +484,7 @@ function renderGenresStatsGrid(mediaType = 'movie', sortBy = 'count') {
 
 // --- MOVIE STATS RENDERER ---
 function renderMovieStats() {
-    const movies = Object.values(userEntries).filter(e => e.type === 'Movie');
+    const movies = Object.values(userEntries).filter(e => !isTvShow(e.type));
 
     const totalMovies = movies.length;
     const totalHours = movies.reduce((acc, curr) => acc + (getEffectiveProgress(curr) > 0 ? 2 : 2), 0); 
@@ -481,10 +503,10 @@ function renderMovieStats() {
     const statusContainer = document.getElementById('movieStatusDonutContainer');
     if (statusContainer) {
         const data = [
-            { label: 'Completed', count: movies.filter(e => e.status === 'Completed').length, color: '#68d391' },
-            { label: 'Watching', count: movies.filter(e => e.status === 'Watching').length, color: '#3db4f2' },
-            { label: 'Planning', count: movies.filter(e => e.status === 'Plan to Watch').length, color: '#f6ad55' },
-            { label: 'Dropped', count: movies.filter(e => e.status === 'Dropped').length, color: '#fc8181' }
+            { label: 'Completed', count: movies.filter(e => String(e.status).toLowerCase() === 'completed').length, color: '#68d391' },
+            { label: 'Watching', count: movies.filter(e => String(e.status).toLowerCase() === 'watching').length, color: '#3db4f2' },
+            { label: 'Planning', count: movies.filter(e => String(e.status).toLowerCase() === 'plan to watch').length, color: '#f6ad55' },
+            { label: 'Dropped', count: movies.filter(e => String(e.status).toLowerCase() === 'dropped').length, color: '#fc8181' }
         ];
         const donut = createDonutChartSVG(data);
         statusContainer.innerHTML = donut.svgHtml + donut.legendHtml;
@@ -506,7 +528,7 @@ function renderMovieStats() {
 
 // --- TV SHOW STATS RENDERER ---
 function renderTvStats() {
-    const tvShows = Object.values(userEntries).filter(e => e.type === 'TV Show');
+    const tvShows = Object.values(userEntries).filter(e => isTvShow(e.type));
 
     const totalShows = tvShows.length;
     
@@ -529,10 +551,10 @@ function renderTvStats() {
     const statusContainer = document.getElementById('tvStatusDonutContainer');
     if (statusContainer) {
         const data = [
-            { label: 'Completed', count: tvShows.filter(e => e.status === 'Completed').length, color: '#68d391' },
-            { label: 'Watching', count: tvShows.filter(e => e.status === 'Watching').length, color: '#3db4f2' },
-            { label: 'Planning', count: tvShows.filter(e => e.status === 'Plan to Watch').length, color: '#f6ad55' },
-            { label: 'Dropped', count: tvShows.filter(e => e.status === 'Dropped').length, color: '#fc8181' }
+            { label: 'Completed', count: tvShows.filter(e => String(e.status).toLowerCase() === 'completed').length, color: '#68d391' },
+            { label: 'Watching', count: tvShows.filter(e => String(e.status).toLowerCase() === 'watching').length, color: '#3db4f2' },
+            { label: 'Planning', count: tvShows.filter(e => String(e.status).toLowerCase() === 'plan to watch').length, color: '#f6ad55' },
+            { label: 'Dropped', count: tvShows.filter(e => String(e.status).toLowerCase() === 'dropped').length, color: '#fc8181' }
         ];
         const donut = createDonutChartSVG(data);
         statusContainer.innerHTML = donut.svgHtml + donut.legendHtml;
@@ -564,7 +586,7 @@ function renderScoreChart(containerId, entries, mode = 'Titles Watched') {
             let mult = 1;
             if (mode === 'Hours Watched') {
                 const prog = getEffectiveProgress(e);
-                mult = e.type === 'Movie' ? 2 : (prog * 0.75);
+                mult = isTvShow(e.type) ? (prog * 0.75) : 2;
             } else if (mode === 'Mean Score') mult = val;
             scoreCounts[val - 1] += mult;
         }
@@ -621,7 +643,7 @@ function renderReleaseYearChart(containerId, entries, mode = 'Titles Watched') {
     entries.forEach(e => {
         const y = e.year || (e.release_date ? e.release_date.split('-')[0] : '2024');
         let val = 1;
-        if (mode === 'Hours Watched') val = Math.round(getEffectiveProgress(e) * (e.type === 'Movie' ? 2 : 0.75));
+        if (mode === 'Hours Watched') val = Math.round(getEffectiveProgress(e) * (isTvShow(e.type) ? 0.75 : 2));
         else if (mode === 'Mean Score') val = Number(e.score) || 0;
         yearCounts[y] = (yearCounts[y] || 0) + val;
     });
@@ -646,7 +668,7 @@ function renderWatchYearChart(containerId, entries, mode = 'Titles Watched') {
     entries.forEach(e => {
         const wy = e.finishDate ? e.finishDate.split('-')[0] : '2024';
         let val = 1;
-        if (mode === 'Hours Watched') val = Math.round(getEffectiveProgress(e) * (e.type === 'Movie' ? 2 : 0.75));
+        if (mode === 'Hours Watched') val = Math.round(getEffectiveProgress(e) * (isTvShow(e.type) ? 0.75 : 2));
         else if (mode === 'Mean Score') val = Number(e.score) || 0;
         watchCounts[wy] = (watchCounts[wy] || 0) + val;
     });
@@ -758,11 +780,11 @@ function renderMediaListTable() {
     let entries = Object.values(userEntries);
 
     if (activeListFilter !== 'all') {
-        entries = entries.filter(e => e.status === activeListFilter);
+        entries = entries.filter(e => String(e.status).toLowerCase() === activeListFilter.toLowerCase());
     }
 
     if (formatFilter !== 'all') {
-        entries = entries.filter(e => e.type === formatFilter);
+        entries = entries.filter(e => formatFilter === 'Movie' ? !isTvShow(e.type) : isTvShow(e.type));
     }
 
     if (searchTerm) {
@@ -783,8 +805,8 @@ function renderMediaListTable() {
                 </div>
             </td>
             <td class="text-center font-weight-600 text-cyan">${item.score > 0 ? item.score : '-'}</td>
-            <td class="text-center muted-text">${getEffectiveProgress(item)} / ${item.type === 'Movie' ? '1' : (item.totalEpisodes || '12')}</td>
-            <td class="text-center muted-text">${escapeHtml(item.type)}</td>
+            <td class="text-center muted-text">${getEffectiveProgress(item)} / ${isTvShow(item.type) ? (item.totalEpisodes || '12') : '1'}</td>
+            <td class="text-center muted-text">${isTvShow(item.type) ? 'TV Show' : 'Movie'}</td>
         </tr>
     `).join('');
 }
@@ -924,34 +946,38 @@ async function saveMediaEntry() {
     const favBtn = document.getElementById('modalFavoriteBtn');
     const statusVal = document.getElementById('entryStatus')?.value || 'Plan to Watch';
     let progressVal = Number(document.getElementById('entryProgress')?.value) || 0;
-    const totalEps = Number(activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12);
+    
+    const isTv = isTvShow(activeMediaData.type);
+    const totalEps = Number(activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || (isTv ? 12 : 1));
 
     // If marked Completed and progress is 0, auto-fill full progress
-    if (statusVal === 'Completed' && progressVal === 0) {
-        progressVal = activeMediaData.type === 'Movie' ? 1 : totalEps;
+    if (String(statusVal).toLowerCase() === 'completed' && progressVal === 0) {
+        progressVal = isTv ? totalEps : 1;
     }
 
+    const entryId = String(activeMediaData.id || activeMediaData.media_id || activeMediaData.title);
+
     const entry = {
-        id: String(activeMediaData.id || activeMediaData.title),
-        media_id: String(activeMediaData.id || activeMediaData.title),
+        id: entryId,
+        media_id: entryId,
         title: activeMediaData.title,
-        type: activeMediaData.type,
-        poster_path: activeMediaData.poster_path || activeMediaData.posterUrl,
+        type: isTv ? 'TV Show' : 'Movie',
+        poster_path: activeMediaData.poster_path || activeMediaData.posterUrl || '',
         backdrop_path: activeMediaData.backdrop_path || activeMediaData.backdropUrl || '',
         genres: activeMediaData.genres || 'Sci-Fi',
         status: statusVal,
-        score: document.getElementById('entryScore')?.value || 0,
+        score: Number(document.getElementById('entryScore')?.value) || 0,
         progress: progressVal,
         totalEpisodes: totalEps,
         startDate: document.getElementById('entryStartDate')?.value || '',
         finishDate: document.getElementById('entryFinishDate')?.value || '',
-        rewatches: document.getElementById('entryRewatches')?.value || 0,
+        rewatches: Number(document.getElementById('entryRewatches')?.value) || 0,
         notes: document.getElementById('entryNotes')?.value || '',
         isPrivate: document.getElementById('entryPrivate')?.checked || false,
         isFavorite: favBtn ? favBtn.classList.contains('active') : false
     };
 
-    userEntries[entry.id] = entry;
+    userEntries[entryId] = entry;
     saveEntriesToLocalStorage();
 
     if (supabaseClient && currentUser) {
@@ -978,7 +1004,7 @@ async function saveMediaEntry() {
 
 async function deleteMediaEntry() {
     if (!activeMediaData) return;
-    const id = String(activeMediaData.id || activeMediaData.title);
+    const id = String(activeMediaData.id || activeMediaData.media_id || activeMediaData.title);
 
     delete userEntries[id];
     saveEntriesToLocalStorage();
@@ -993,16 +1019,19 @@ async function deleteMediaEntry() {
 }
 
 async function addToWatchlist(item) {
+    const isTv = isTvShow(item.type);
+    const entryId = String(item.id || item.title);
+
     const entry = {
-        id: String(item.id || item.title),
-        media_id: String(item.id || item.title),
+        id: entryId,
+        media_id: entryId,
         title: item.title,
-        type: item.type || 'Movie',
+        type: isTv ? 'TV Show' : 'Movie',
         poster_path: item.poster_path,
         score: Number(item.rating) || 0,
         status: 'Plan to Watch',
         progress: 0,
-        totalEpisodes: item.totalEpisodes || 12
+        totalEpisodes: isTv ? 12 : 1
     };
     userEntries[entry.id] = entry;
     saveEntriesToLocalStorage();
@@ -1036,11 +1065,12 @@ async function fetchUserWatchlist(userId) {
     } else if (data) {
         data.forEach(item => {
             const existing = userEntries[item.media_id] || {};
+            const itemType = item.media_type || existing.type || 'Movie';
             userEntries[item.media_id] = {
                 ...existing,
                 id: item.media_id,
                 title: item.title,
-                type: item.media_type || existing.type || 'Movie',
+                type: isTvShow(itemType) ? 'TV Show' : 'Movie',
                 poster_path: item.poster_path || existing.poster_path,
                 score: item.rating !== null ? item.rating : (existing.score || 0),
                 status: item.status || existing.status || 'Plan to Watch',
@@ -1067,7 +1097,8 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
 
         if (data.results && data.results.length > 0) {
             mediaList = data.results.map(item => {
-                const isMovie = (item.media_type === 'movie') || Boolean(item.title);
+                const isTv = (item.media_type === 'tv') || Boolean(item.name && !item.title);
+                const isMovie = !isTv;
                 return {
                     id: String(item.id),
                     title: isMovie ? item.title : item.name,
@@ -1088,7 +1119,10 @@ async function fetchAndRenderMovies(filterCategory = activeFilter) {
         console.error("Error fetching live data from TMDB, using fallback dataset:", error);
         mediaList = FALLBACK_MEDIA;
         if (filterCategory !== 'all') {
-            mediaList = mediaList.filter(item => item.type.toLowerCase() === filterCategory.toLowerCase());
+            mediaList = mediaList.filter(item => {
+                const isTv = isTvShow(item.type);
+                return filterCategory === 'Movie' ? !isTv : isTv;
+            });
         }
     }
 
@@ -1213,7 +1247,7 @@ function updateFilterIndicator() {
     if (activeDot) activeDot.style.display = hasActiveFilters ? 'block' : 'none';
 }
 
-// --- EXECUTE SEARCH ENGINE (INTEGRATED FUZZY SEARCH WITH FUSE.JS) ---
+// --- EXECUTE SEARCH ENGINE ---
 async function triggerSearchExecution() {
     const queryInput = document.getElementById('globalSearchInput')?.value.trim() || '';
     const yFrom = parseInt(document.getElementById('filterYearFrom')?.value) || null;
@@ -1237,7 +1271,8 @@ async function triggerSearchExecution() {
 
             if (data.results && data.results.length > 0) {
                 rawMediaList = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv').map(item => {
-                    const isMovie = item.media_type === 'movie';
+                    const isTv = item.media_type === 'tv';
+                    const isMovie = !isTv;
                     return {
                         id: String(item.id),
                         title: isMovie ? item.title : item.name,
@@ -1472,7 +1507,7 @@ function openMediaModal(data) {
     const modal = document.getElementById('mediaModal');
     if (!modal) return;
 
-    const id = String(data.id || data.title);
+    const id = String(data.id || data.media_id || data.title);
     const existing = userEntries[id] || {};
 
     const posterSrc = data.poster_path || data.posterUrl || '';
@@ -1482,8 +1517,9 @@ function openMediaModal(data) {
     const titleEl = document.getElementById('modalTitle');
     if (titleEl) titleEl.textContent = data.title || 'Untitled';
 
+    const isTv = isTvShow(data.type || existing.type);
     const subEl = document.getElementById('modalSubheading');
-    if (subEl) subEl.textContent = `${data.type || 'Media'} · ${data.year || '2024'}`;
+    if (subEl) subEl.textContent = `${isTv ? 'TV SHOW' : 'MOVIE'} · ${data.year || '2024'}`;
 
     const bannerUrl = data.backdrop_path || data.backdropUrl || posterSrc;
     const banner = document.getElementById('modalBanner');
@@ -1492,12 +1528,12 @@ function openMediaModal(data) {
     }
 
     const effectiveStatus = existing.status || 'Plan to Watch';
-    let effectiveProgress = existing.progress !== undefined ? existing.progress : 0;
-    const totalEps = Number(data.totalEpisodes || existing.totalEpisodes || 12);
+    const totalEps = Number(data.totalEpisodes || existing.totalEpisodes || (isTv ? 12 : 1));
+    let effectiveProgress = existing.progress !== undefined ? Number(existing.progress) : 0;
 
-    // If marked Completed and progress is 0, auto-populate full progress in UI
-    if (effectiveStatus === 'Completed' && effectiveProgress === 0) {
-        effectiveProgress = data.type === 'Movie' ? 1 : totalEps;
+    // Auto-populate episode count if marked Completed
+    if (String(effectiveStatus).toLowerCase() === 'completed' && effectiveProgress === 0) {
+        effectiveProgress = isTv ? totalEps : 1;
     }
 
     if (document.getElementById('entryStatus')) document.getElementById('entryStatus').value = effectiveStatus;
@@ -1576,10 +1612,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Auto-fill episode progress input when selecting "Completed" status in modal
     document.getElementById('entryStatus')?.addEventListener('change', (e) => {
-        if (e.target.value === 'Completed' && activeMediaData) {
+        if (String(e.target.value).toLowerCase() === 'completed' && activeMediaData) {
             const progInput = document.getElementById('entryProgress');
             if (progInput && (Number(progInput.value) === 0 || !progInput.value)) {
-                progInput.value = activeMediaData.type === 'Movie' ? 1 : (activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12);
+                const isTv = isTvShow(activeMediaData.type);
+                progInput.value = isTv ? (activeMediaData.totalEpisodes || activeMediaData.number_of_episodes || 12) : 1;
             }
         }
     });
@@ -1730,13 +1767,14 @@ document.addEventListener("DOMContentLoaded", () => {
             
             const card = actionCircle.closest('.movie-card');
             if (card && isAdded) {
+                const cardType = card.dataset.type || 'Movie';
                 addToWatchlist({
                     id: card.dataset.id,
                     title: card.dataset.title,
                     poster_path: card.querySelector('img')?.src,
-                    type: card.dataset.type,
+                    type: isTvShow(cardType) ? 'TV Show' : 'Movie',
                     rating: card.dataset.rating,
-                    totalEpisodes: card.dataset.type === 'Movie' ? 1 : 12
+                    totalEpisodes: isTvShow(cardType) ? 12 : 1
                 });
             }
             return;
@@ -1754,17 +1792,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const card = e.target.closest('.movie-card, .media-card');
         if (card) {
+            const cardType = card.dataset.type || 'Movie';
+            const isTv = isTvShow(cardType);
             openMediaModal({
                 id: card.dataset.id || card.dataset.title,
                 title: card.dataset.title || card.querySelector('.movie-title, h4')?.textContent || 'Title',
                 year: card.dataset.year || '2024',
-                type: card.dataset.type || 'Movie',
+                type: isTv ? 'TV Show' : 'Movie',
                 rating: card.dataset.rating || '8.0',
                 overview: card.dataset.overview || 'Overview details...',
                 genres: card.dataset.genres || 'Sci-Fi',
                 poster_path: card.querySelector('img')?.src || '',
                 backdrop_path: card.dataset.backdrop || card.querySelector('img')?.src || '',
-                totalEpisodes: card.dataset.type === 'Movie' ? 1 : 12
+                totalEpisodes: isTv ? 12 : 1
             });
         }
     });
